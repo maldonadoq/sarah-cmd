@@ -1,0 +1,36 @@
+object Frame1: TFrame1
+  Left = 0
+  Height = 320
+  Top = 0
+  Width = 468
+  ClientHeight = 320
+  ClientWidth = 468
+  TabOrder = 0
+  DesignLeft = 866
+  DesignTop = 238
+  object Chart1: TChart
+    Left = 0
+    Height = 320
+    Top = 0
+    Width = 468
+    AxisList = <    
+      item
+        Minors = <>
+        Title.LabelFont.Orientation = 900
+      end    
+      item
+        Alignment = calBottom
+        Minors = <>
+      end>
+    Foot.Brush.Color = clBtnFace
+    Foot.Font.Color = clBlue
+    Title.Brush.Color = clBtnFace
+    Title.Font.Color = clBlue
+    Title.Text.Strings = (
+      'TAChart'
+    )
+    Align = alClient
+    object GraficaI: TLineSeries
+    end
+  end
+end
