@@ -8,7 +8,6 @@
       <Title Value="Sarah"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
@@ -32,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="6">
       <Unit0>
         <Filename Value="Sarah.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -63,6 +62,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CmdParse"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="framestrgrid.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Frame2"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="FrameStrGrid"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

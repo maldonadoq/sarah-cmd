@@ -25,7 +25,7 @@ type
     procedure InstantFrame(FrameSelected: integer; state: boolean);
     procedure Visible;
     procedure Invisible;
-    procedure Funct(fn: string);
+    function Funct(fn: string): real;
   public
     MCmdParse: TCmdParse;
   end;
@@ -52,10 +52,10 @@ begin
   MCmdParse.Destroy();
 end;
 
-procedure TForm1.Funct(fn: string);
+function TForm1.Funct(fn: string): real;
 begin
   MCmdParse.Expression:= fn;
-  MCmdParse.Evaluate();
+  Result:= MCmdParse.Evaluate();
 end;
 
 procedure TForm1.CmdLInput(ACmdBox: TCmdBox; Input: string);
@@ -74,6 +74,10 @@ begin
         FinalLine:= StringReplace(Input, ' ', '', [rfReplaceAll]);
         if Pos('=',FinalLine)>0 then begin
           InstantFrame(0,False);
+        end
+        else if pos('integrate',FinalLine)>0 then begin
+          InstantFrame(0,True);
+          CmdL.WriteLn(FloatToStr(Funct(FinalLine)));
         end
         else if pos('plot',FinalLine)>0 then begin
           InstantFrame(0,True);
