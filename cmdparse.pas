@@ -5,7 +5,7 @@ unit CmdParse;
 interface
 
 uses
-  Classes, SysUtils, fpexprpars, Dialogs, Forms, Func;
+  Classes, SysUtils, fpexprpars, Dialogs, Forms, FuncParse;
 
 type
   TCmdParse = Class

@@ -1,4 +1,4 @@
-unit Func;
+unit FuncParse;
 
 {$mode objfpc}{$H+}
 

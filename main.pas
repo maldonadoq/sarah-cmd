@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, uCmdBox, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, Grids, FrameGraphic, CmdParse, Func;
+  ExtCtrls, StdCtrls, Grids, FrameGraphic, CmdParse, FuncParse;
 
 type
   TForm1 = class(TForm)
