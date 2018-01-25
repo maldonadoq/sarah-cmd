@@ -52,6 +52,7 @@ procedure TCmdParse.AddFunctions();
 begin
   with FParser.Identifiers do begin
      AddFunction('plot', 'F', 'SFFF', @ExprPlot);
+     AddFunction('integrate', 'F', 'SFFIS', @ExprIntegrate);
   end
 end;
 
