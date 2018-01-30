@@ -30,7 +30,18 @@ object Frame1: TFrame1
       'TAChart'
     )
     Align = alClient
+    object AreaDraw: TAreaSeries
+      AreaBrush.Color = clRed
+    end
     object GraficaI: TLineSeries
+      LinePen.Color = clLime
+      Pointer.Pen.Width = 2
+    end
+    object GraficaII: TLineSeries
+      LinePen.Color = clRed
+      Pointer.Pen.Width = 2
+    end
+    object GraficaIII: TLineSeries
     end
   end
 end

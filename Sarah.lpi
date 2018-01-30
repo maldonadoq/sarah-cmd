@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="7">
       <Unit0>
         <Filename Value="Sarah.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -66,9 +66,15 @@
         <Filename Value="framestrgrid.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Frame2"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="FrameStrGrid"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="extrapolacion.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Extrapolacion"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
