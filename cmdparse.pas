@@ -15,6 +15,7 @@ type
     procedure AddVariable( Variable: string; Value: Double );
     procedure AddString( Variable: string; Value: string );
     function Evaluate(): Double;
+    function EvaluateFunc(): String;
     constructor Create();
     destructor Destroy(); override;
   private
@@ -48,11 +49,23 @@ begin
   Result:= ArgToFloat(FParser.Evaluate);
 end;
 
+function TCmdParse.EvaluateFunc(): String;
+begin
+  FParser.Expression:= Expression;
+  Result:= (FParser.Evaluate).ResString;
+end;
+
 procedure TCmdParse.AddFunctions();
 begin
   with FParser.Identifiers do begin
      AddFunction('plot', 'F', 'SFFF', @ExprPlot);
-     AddFunction('integrate', 'F', 'SFFIS', @ExprIntegrate);
+     AddFunction('integrate', 'F', 'SFFFS', @ExprIntegrate);
+     AddFunction('raiz', 'F', 'SFFFSS', @ExprInterMeth);
+     AddFunction('intersection', 'S', 'SSFFF', @ExprIntersection);
+     AddFunction('matrix', 'S', 'SSFS', @ExprMatrix);
+     AddFunction('interpolation', 'S', 'SS', @ExprInterpolation);
+     AddFunction('edo', 'S', 'SFFFFSS', @ExprEdo);
+     AddFunction('extrapolation', 'S', 'SS', @ExprMethExtra);
   end
 end;
 
