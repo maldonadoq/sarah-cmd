@@ -5,21 +5,29 @@ unit FrameStrGrid;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Grids;
+  Classes, SysUtils, FileUtil, Forms, Controls, Grids, Func;
 
 type
-
-  { TFrame2 }
-
   TFrame2 = class(TFrame)
-    StringGrid1: TStringGrid;
+    DataSG: TStringGrid;
   private
-
   public
-
+    procedure PutSG(TB: TBox);
   end;
 
 implementation
+
+procedure TFrame2.PutSG(TB: TBox);
+var
+  i,j: integer;
+begin
+  DataSG.Clear();
+  DataSG.RowCount:= TB.x;
+  DataSG.ColCount:= TB.y;
+  for i:=0 to TB.x-1 do
+    for j:=0 to TB.y-1 do
+      DataSG.Cells[j,i]:= TB.M[i,j];
+end;
 
 {$R *.lfm}
 
