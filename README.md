@@ -3,22 +3,22 @@ Sarah-Cmd
 
 [sarah]: http://guides.github.com/overviews/mastering-markdown/
 
-  - [Introducción](#introducción)
+  - [Introduction](#introduction)
   - [Sarah](#sarah)
   - [Examples](#examples)
 
-## Introducción ##
+## Introduction ##
 
 ## Sarah ##
 
 ### Type Variable
-    1. Function
+    - Function
     	* f(x)= sin(x)
-    2. Base
+    - Base
     	* B= [(1,5):(2,4):(3,2):(4,9)]
-    3. Matrix
-    	* M[]= [1,2:2,3]
-    4. Real 
+    - Matrix
+      * M[]= [1,2:2,3]
+    - Real 
     	* p= 10    
 
 ### Functions!!
@@ -31,16 +31,42 @@ Sarah-Cmd
     * extrapolation(Data,Method Extrapolation)
     * matrix(Matrix;Matrix;Esc-Pow;Operation)
     
+### ABC
+    -Method Integrate
+  	.'Trapecio'
+  	.'Simpson1/3'
+  	.'Simpson3/8'
+  	.'Cuadratura'
+  -Method Raiz
+  	.'Bisect'
+  	.'FalPos'
+  	.'Secant'
+  	.'Newton' ->[Derivada!]''
+  -Method Interpolation
+    .'Lagrange'
+    .'Newton'
+  -Data
+    .'Name Data.txt'
+  -Method Extrapolation
+  	.'Lineal'
+  	.'Exponencial'
+  	.'Logaritmo'
+  -Method Edo
+    .'Euler'
+    .'Heun'
+    .'RungeKutta'
+    .'Dormand'
+  -Frame
+  	.'Table'
+  	.'Graphic'  
+  -Error
+    . E-4[0.0001]
 ## Examples
+    
 
 ### Emoji
 
-GitHub soporta emoji :sparkles: :camel: :boom: Para ver la lista de imágenes que soporta, da un vistazo a la [Hoja de Datos Emoji][Emoji].
-
-[Emoji]: http://www.emoji-cheat-sheet.com/
+:sparkles: :camel: :boom:
 
 * * *
-
-Para profundizar más, aquí algunas guías Markdown también en español:
-
-  - [Markdown en español](https://github.com/ricval/Documentacion/tree/master/Markdown)
+-[Percy Maldonado Quispe](https://github.com/percy00010)
