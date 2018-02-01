@@ -26,7 +26,7 @@ type
 
 implementation
 
-constructor TCmdParse.create;
+constructor TCmdParse.Create;
 begin
    FParser:= TFPExpressionParser.Create( nil );
    FParser.Builtins := [ bcMath ];

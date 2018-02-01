@@ -18,6 +18,7 @@ type
       MParse: TParseMath;
       function MLineal(): TSRA;
       function MExponencial(): TSRA;
+      function MLogaritmo(): TSRA;
       function Func(x: real; fn: string): real;
       function MR(fn: string; MP: TList): real;
   end;
@@ -49,14 +50,18 @@ end;
 function TExtrapolation.MR(fn: string; MP: TList): real;
 var
   i: integer;
-  fs, ss: real;
+  Ymt,fs, ss: real;
   TM: TMPoint;
 begin
-  fs := 0; ss := 0;
+  fs := 0; ss := 0; Ymt:=0;
+  for i:=0 to MP.Count-1 do
+    Ymt:= Ymt+TMPoint(MP.Items[i]).y;
+
+  Ymt:= Ymt/MP.Count;
   for i:=0 to MP.Count-1 do begin
     TM:= TMPoint(MP.Items[i]);
-    fs:= fs+Power(Func(TM.x,fn)-Ym,2);
-    ss:= ss+Power(TM.y-Ym,2);
+    fs:= fs+Power(Func(TM.x,fn)-Ymt,2);
+    ss:= ss+Power(TM.y-Ymt,2);
   end;
   Result := sqrt(fs/ss);
 end;
@@ -106,7 +111,8 @@ begin
     TP:= TMPoint(MDP.Items[i]);
     if(TP.y<=0) then begin
       Result.State:= False;
-      exit;
+      Result.s1:= 'Variable y!<=0';
+      Exit;
     end;
     Ymt := Ymt + Ln(TP.y);
     ML.Add(TMPoint.Create(TP.x,Ln(TP.y)));
@@ -132,10 +138,42 @@ begin
     Solt:= FloatToStr((Ymt-(c*Xm)))+'+(x*'+FloatToStr(c)+')';
   end;
 
-  WriteLn(Solt);
   Result.State:= True;
   Result.s1:= Sol;
   Result.s2:= Format('%*.*f',[0,Ndc,MR(Solt,ML)]);
+end;
+
+function TExtrapolation.MLogaritmo(): TSRA;
+var
+  i: integer;
+  slny,sln,slnp,m,b: real;
+  Sol: string;
+  TM: TMPoint;
+begin
+  slny:=0; sln:=0; slnp:=0;
+  for i:=0 to MDP.Count-1 do begin
+    TM:= TMPoint(MDP.Items[i]);
+    if(TM.x<=0) then begin
+      Result.State:= False;
+      Result.s1:= 'Variable x!<=0';
+      Exit;
+    end;
+    slny:= slny+(Ln(TM.x)*TM.y);
+    sln:= sln+Ln(TM.x);
+    slnp:= slnp+Power(Ln(TM.x),2);
+  end;
+
+  m:= (slny-(Ym*sln))/(slnp-((sln/MDP.Count)*sln));
+  b:= Ym-(m*(sln/MDP.Count));
+
+  if(b<0) then
+    Sol:= Format('(%*.*f*ln(x))-%*.*f',[0,Ndc,m,0,Ndc,Abs(b)])
+  else
+    Sol:= Format('(%*.*f*ln(x))+%*.*f',[0,Ndc,m,0,Ndc,b]);
+
+  Result.State:= True;
+  Result.s1:= Sol;
+  Result.s2:= Format('%*.*f',[0,Ndc,MR(Sol,MDP)]);
 end;
 
 end.

@@ -70,6 +70,7 @@ type
 
 var
   NULLF, ShiftArea: real;
+  TypeVarF,TypeVarM,TypeVarR,TypeVarN, TypeVarB: string;
 
 function XIntervalo(MP: TList): TMPoint;
 function StrToBase(base: string): TList;
@@ -242,7 +243,9 @@ function IdxStr(s,sb: string; idx: integer): integer;
 begin
   for Result:=idx+1 to Length(s)-1 do
     if(s[Result]=sb) then
-      Exit;
+      Exit;    
+
+  Result:= Length(s);
 end;
 
 function SubString(base: string; ini,fin: integer): string;
@@ -288,10 +291,25 @@ function StrAssign(tx: string): VectString;
 var
   idx: integer;
 begin
-  SetLength(Result,2);
+  SetLength(Result,3);
   idx:= IdxStr(tx,'=',0);
   Result[0]:= SubString(tx,1,idx-1);
   Result[1]:= SubString(tx,idx+1,Length(tx));
+  if Pos('(',Result[0])>0 then
+    Result[2]:= TypeVarF
+  else if Pos('[',Result[1])>0 then
+    Result[2]:= TypeVarM
+  else if Pos('(',Result[1])>0 then
+    Result[2]:= TypeVarB
+  else begin
+    Try
+      StrToFloat(Result[1]);
+      Result[2]:= TypeVarR;
+    except
+      On E:EConvertError do
+      Result[2]:= TypeVarN;
+    end;
+  end;
 end;
 
 function FirstArg(tx,s: string): TRS;

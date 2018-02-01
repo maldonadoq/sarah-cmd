@@ -31,7 +31,6 @@ begin
   n:= TFrame2(ExtraFrame).DataSG.RowCount;
   for i:=0 to n-1 do
     Result.Add(TMPoint.Create(StrToFloat(TFrame2(ExtraFrame).DataSG.Cells[0,i]),StrToFloat(TFrame2(ExtraFrame).DataSG.Cells[1,i])))
-  //me quede aqui, leeeeer!!!
 end;
 
 procedure ExprPlot(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -172,8 +171,14 @@ begin
   ma:= Args[0].ResString;
   mb:= Args[1].ResString;
   cs:= Args[3].ResString;
+  TMR:= TMatriz.Create(0,0);
+
   TMA:= StrToMatriz(ma);
   TMB:= StrToMatriz(mb);
+  if ((TMA.x=0) or (TMA.y=0)) and ((TMB.x=0) or (TMB.y=0)) then begin
+    Result.resString:= '  Wrong!! Matriz Example '+#39+'[a00,a01:a10,a11]'+#39;
+    Exit;
+  end;
 
   Result.resString:= '  No Exite Esta Operación';
   case cs of
@@ -224,6 +229,7 @@ begin
     case Args[1].ResString of
       'Lineal':      MTRS:= MEX.MLineal();
       'Exponencial': MTRS:= MEX.MExponencial();
+      'Logaritmo': MTRS:= MEX.MLogaritmo();
     end;
 
     if MTRS.State then begin
@@ -232,7 +238,7 @@ begin
       TFrame1(ActualFrame).PlotearPoints(MPD,False);
     end
     else
-      Result.ResString:= 'Does not Exist! or Data is Wrong';
+      Result.ResString:= MTRS.s1;
     MEX.Destroy();
   end
   else

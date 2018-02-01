@@ -50,9 +50,11 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   ShiftArea:= 0.5;
   NULLF:= 99999;
-  SgVariable.Cells[0,0]:= 'n°';
-  SgVariable.Cells[1,0]:= 'name';
-  SgVariable.Cells[2,0]:= 'value';
+  TypeVarF:= 'function'; TypeVarM:= 'matrix';
+  TypeVarR:= 'real';   TypeVarN:= 'null';
+  SgVariable.Cells[0,0]:= 'name';
+  SgVariable.Cells[1,0]:= 'value';
+  SgVariable.Cells[2,0]:= 'type';
   Invisible;
   MCmdParse:= TCmdParse.Create();
 
@@ -83,7 +85,7 @@ var
 begin
   Result.State:= False;
   for i:=1 to SgVariable.RowCount-1 do
-    if SgVariable.Cells[1,i]=vr then begin
+    if SgVariable.Cells[0,i]=vr then begin
       Result.State:= True;
       Result.Value:= i;
       Exit;
@@ -97,24 +99,17 @@ var
   s,st,fn: string;
 begin
   MTRSA:= FSArg(tx);
-  WriteLn(MTRSA.s1+' '+MTRSA.s2);
   s:= StringReplace(tx, ';', ',', [rfReplaceAll]);
   fn:= s;
-  WriteLn(MTRSA.State);
   if not MTRSA.State then begin
     MRI:= FindVariable(MTRSA.s1);
     MRII:= FindVariable(MTRSA.s2);
-    Write(MRI.State);
-    Write(' ');
-    WriteLn(MRII.State);
 
     if MRI.State and MRII.State then begin
-      WriteLn(True);
-      st:= StringReplace(fn, MTRSA.s1,SgVariable.Cells[2,MRI.Value],[rfReplaceAll]);
-      s:= StringReplace(st, MTRSA.s2,SgVariable.Cells[2,MRII.Value],[rfReplaceAll]);
+      st:= StringReplace(fn, MTRSA.s1,#39+SgVariable.Cells[1,MRI.Value]+#39,[rfReplaceAll]);
+      s:=  StringReplace(st, MTRSA.s2,#39+SgVariable.Cells[1,MRII.Value]+#39,[rfReplaceAll]);
     end
     else begin
-      WriteLn(False);
       Result.State:= False;
       Result.Value:= '';
       Exit;
@@ -137,7 +132,7 @@ begin
   if not MRS.State then begin
     MRI:= FindVariable(MRS.Value);
     if MRI.State then
-      s:= StringReplace(fn, MRS.Value, SGVariable.Cells[2,MRI.Value], [rfReplaceAll])
+      s:= StringReplace(fn, MRS.Value, #39+SGVariable.Cells[1,MRI.Value]+#39, [rfReplaceAll])
     else begin
       Result.State:= False;
       Result.Value:= '';
@@ -153,6 +148,7 @@ var
   FinalLine, RTemp: string;
   RF: real;
   MRS: TRS;
+  MRI: TRI;
   MVS: VectString;
 begin
   try
@@ -169,7 +165,18 @@ begin
       else begin
         if Pos('=',FinalLine)>0 then begin
           MVS:= StrAssign(FinalLine);
-          PutVariable(MVS);
+          MRI:= FindVariable(MVS[0]);
+          if MRI.State then begin
+            if MVS[2]=TypeVarN then
+              CmdL.WriteLn('  Wrong Data Type!!')
+            else begin
+              SgVariable.Cells[1,MRI.Value]:= MVS[1];
+              SgVariable.Cells[2,MRI.Value]:= MVS[2];
+            end;
+          end
+          else
+            PutVariable(MVS);
+
           InstantFrame(0,False);
         end
         else if pos('plot',FinalLine)>0 then begin
@@ -242,14 +249,20 @@ begin
             CmdL.WriteLn(Rtemp);
           end;
         end
-        else if pos('matrix',FinalLine)>0 then begin
-          InstantFrame(0,false);
-          CmdL.WriteLn(FunctStr(FinalLine));
-        end
         else if pos('extrapolation',FinalLine)>0 then begin
           ExtraFrameT();
           InstantFrame(0,true);
           CmdL.WriteLn('  '+FunctStr(FinalLine));
+        end
+        else if pos('matrix',FinalLine)>0 then begin
+          MRS:= FSArguments(FinalLine);
+          if not MRS.State then begin
+            CmdL.WriteLn('  No Existe Alguna Variable');
+            Exit;
+          end;
+          FinalLine:= MRS.Value;
+          InstantFrame(0,false);
+          CmdL.WriteLn(FunctStr(FinalLine));
         end
         else if pos('intersection',FinalLine)>0 then begin
           MRS:= FSArguments(FinalLine);
@@ -297,9 +310,9 @@ procedure TForm1.ClearVariable;
 begin
   SgVariable.Clear;
   SgVariable.RowCount:= 1; SgVariable.ColCount:= 3;
-  SgVariable.Cells[0,0]:= 'n°';
-  SgVariable.Cells[1,0]:= 'name';
-  SgVariable.Cells[2,0]:= 'value';
+  SgVariable.Cells[0,0]:= 'name';
+  SgVariable.Cells[1,0]:= 'value';
+  SgVariable.Cells[2,0]:= 'type';
 end;
 
 procedure TForm1.PutVariable(vv: VectString);
@@ -308,9 +321,9 @@ var
 begin
   i:= SgVariable.RowCount;
   SgVariable.RowCount:= i+1;
-  SgVariable.Cells[0,i]:= IntToStr(i);
-  SgVariable.Cells[1,i]:= vv[0];
-  SgVariable.Cells[2,i]:= vv[1];
+  SgVariable.Cells[0,i]:= vv[0];
+  SgVariable.Cells[1,i]:= vv[1];
+  SgVariable.Cells[2,i]:= vv[2];
 end;
 
 procedure TForm1.StartCommand;
