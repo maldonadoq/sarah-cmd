@@ -80,7 +80,7 @@ Sarah-Cmd
       * intersection(f(x);g(x);-10;10;0.001)
       * extrapolation('data.txt','Lineal')
 
-:sparkles: :camel: :boom:
+<!--:sparkles: :camel: :boom:-->
 
 * * *
 -[Percy Maldonado Quispe](https://github.com/percy00010)
