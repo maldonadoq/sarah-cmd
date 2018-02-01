@@ -11,8 +11,8 @@ type
   TCmdParse = Class
   public
     Expression: string;
-    function NewValue( Variable:string; Value: Double ): Double;
-    procedure AddVariable( Variable: string; Value: Double );
+    procedure NewValue(Variable:string; Value: Double);
+    procedure AddVariable(Variable: string; Value: Double);
     procedure AddString( Variable: string; Value: string );
     function Evaluate(): Double;
     function EvaluateFunc(): String;
@@ -38,7 +38,7 @@ begin
   FParser.Destroy;
 end;
 
-function TCmdParse.NewValue( Variable: string; Value: Double ): Double;
+procedure TCmdParse.NewValue( Variable: string; Value: Double );
 begin
   FParser.IdentifierByName(Variable).AsFloat:= Value;
 end;
@@ -58,7 +58,7 @@ end;
 procedure TCmdParse.AddFunctions();
 begin
   with FParser.Identifiers do begin
-     AddFunction('plot', 'F', 'SFFF', @ExprPlot);
+     AddFunction('plot', 'F', 'SFF', @ExprPlot);
      AddFunction('integrate', 'F', 'SFFFS', @ExprIntegrate);
      AddFunction('raiz', 'F', 'SFFFSS', @ExprInterMeth);
      AddFunction('intersection', 'S', 'SSFFF', @ExprIntersection);
@@ -69,21 +69,21 @@ begin
   end
 end;
 
-procedure TCmdParse.AddVariable( Variable: string; Value: Double );
+procedure TCmdParse.AddVariable(Variable: string; Value: Double);
 var Len: Integer;
 begin
-  Len:= length( identifier ) + 1;
-  SetLength( identifier, Len ) ;
-  identifier[ Len - 1 ]:= FParser.Identifiers.AddFloatVariable( Variable, Value);
+  Len:= length(identifier) + 1;
+  SetLength(identifier,Len);
+  identifier[Len-1]:= FParser.Identifiers.AddFloatVariable(Variable, Value);
 end;
 
 procedure TCmdParse.AddString( Variable: string; Value: string );
 var Len: Integer;
 begin
-  Len:= length( identifier ) + 1;
-  SetLength( identifier, Len ) ;
+  Len:= length(identifier)+1;
+  SetLength(identifier,Len);
 
-  identifier[ Len - 1 ]:= FParser.Identifiers.AddStringVariable( Variable, Value);
+  identifier[Len-1]:= FParser.Identifiers.AddStringVariable(Variable, Value);
 end;
 
 end.
