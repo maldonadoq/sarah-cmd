@@ -1,7 +1,7 @@
 # sarah-cmd
 Análisis Numérico!
 
->Type Variable!
+# Type Variable!
   -Function 
     f(x)= sin(x)
   -Real
@@ -11,7 +11,7 @@ Análisis Numérico!
   -Matrix
     M[]= [1,2:2,3]
 
->Functions!
+# Functions!
 	- plot(Function;a;b)
 	- integrate(Function;A;B;ns;Method Integrate)
 	- raiz(Function;A;B;Error;Method Raiz;Newton[Derivada])
@@ -21,7 +21,7 @@ Análisis Numérico!
 	- extrapolation(Data,Method Extrapolation)
 	- matrix(Matrix;Matrix;Esc-Pow;Operation)
 
->ABC
+# ABC
 	-Method Integrate
   	.'Trapecio'
   	.'Simpson1/3'
@@ -52,7 +52,7 @@ Análisis Numérico!
   -Error
     . E-4[0.0001]
 
->Examples
+# Examples
 	-Variables
 		.f(x)= 'sin(x)'
 		.g(x)= 'cos(x)'
@@ -62,11 +62,11 @@ Análisis Numérico!
 		.M[]= [-6,2:4,3]
 		.s(x)= 'sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))'
 
-	Functions
-  	.plot(f(x);-10;10)
-    .integrate(h(x);1;2;100;'Simpson1/3')
-	  .raiz(h(x);1;2;0.001;'Bisect';'')
-	  .interpolation(B;'Lagrange')
+	-Functions
+		.plot(f(x);-10;10)
+		.integrate(h(x);1;2;100;'Simpson1/3')
+		.raiz(h(x);1;2;0.001;'Bisect';'')
+		.interpolation(B;'Lagrange')
 		.edo(s(x);-0.7;2;-0.7;0.49;'RungeKutta';'Graphic')
-	  .intersection(f(x);g(x);-10;10;0.001)
+		.intersection(f(x);g(x);-10;10;0.001)
 		.extrapolation('data.txt','Lineal')
