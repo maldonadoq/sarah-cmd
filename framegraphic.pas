@@ -19,9 +19,10 @@ type
     GraficaII: TLineSeries;
     GraficaI: TLineSeries;
   public
+    h: real;
     MParse: TParseMath;
-    procedure Plotear(fn: string; xmin,xmax,h: real; state: boolean);
-    procedure PlotearIntersection(f1,f2: string; xmin,xmax,h: real);
+    procedure Plotear(fn: string; xmin,xmax: real; state: boolean);
+    procedure PlotearIntersection(f1,f2: string; xmin,xmax: real);
     procedure CreateParse;
     procedure PlotearPoints(MS: TList; Stick: boolean);
     procedure PlotearPointFunct(MS: TList);
@@ -35,6 +36,7 @@ procedure TFrame1.CreateParse;
 begin
   MParse:= TParseMath.Create;
   MParse.AddVariable('x',0);
+  h:= 0.001;
 end;
 
 function TFrame1.Func(x: real; fn: string): real;
@@ -44,7 +46,7 @@ begin
   Result:= MParse.Evaluate();
 end;
 
-procedure TFrame1.Plotear(fn: string; xmin,xmax,h: real; state: boolean);
+procedure TFrame1.Plotear(fn: string; xmin,xmax: real; state: boolean);
 var
   x,y,xmna,xmxa: Real;
 begin
@@ -71,9 +73,9 @@ begin
   end;
 end;
 
-procedure TFrame1.PlotearIntersection(f1,f2: string; xmin,xmax,h: real);
+procedure TFrame1.PlotearIntersection(f1,f2: string; xmin,xmax: real);
 var
-  x,y: Real;
+  x: Real;
 begin
   x:= xmin;
   CreateParse;
