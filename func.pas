@@ -297,7 +297,7 @@ begin
   Result[1]:= SubString(tx,idx+1,Length(tx));
   if Pos('(',Result[0])>0 then
     Result[2]:= TypeVarF
-  else if Pos('[',Result[1])>0 then
+  else if Pos('[',Result[0])>0 then
     Result[2]:= TypeVarM
   else if Pos('(',Result[1])>0 then
     Result[2]:= TypeVarB

@@ -36,7 +36,7 @@ end;
 procedure ExprPlot(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 begin
   Result.resFloat:= 0;
-  TFrame1(ActualFrame).Plotear(Args[0].ResString,ArgToFloat(Args[1]),ArgToFloat(Args[2]),ArgToFloat(Args[3]),False);
+  TFrame1(ActualFrame).Plotear(Args[0].ResString,ArgToFloat(Args[1]),ArgToFloat(Args[2]),False);
 end;
 
 procedure ExprIntegrate(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -56,7 +56,7 @@ begin
     'Cuadratura': Result.resFloat:= MIn.CuadraturaGauss(a,b,Args[0].ResString,n);
     else Result.resFloat:= NULLF;
   end;
-  TFrame1(ActualFrame).Plotear(Args[0].ResString,a-ShiftArea,b+ShiftArea,0.001,True);
+  TFrame1(ActualFrame).Plotear(Args[0].ResString,a-ShiftArea,b+ShiftArea,True);
 end;
 
 procedure ExprInterMeth(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -97,7 +97,7 @@ begin
 
   MS:= TList.Create;
   MInters:= TMethIntersection.Create();
-  TFrame1(ActualFrame).PlotearIntersection(fx,gx,a,b,0.01);
+  TFrame1(ActualFrame).PlotearIntersection(fx,gx,a,b);
 
   MS:= MInters.MBoth(a,b,e,fn,fx);
   if(MS.Count=0) then Result.resString:= '  No Existe Intersection!!'
@@ -127,7 +127,7 @@ begin
   end;
 
   if(MList.Count<>0) then begin
-    TFrame1(ActualFrame).Plotear(Result.resString,TM.x-ShiftArea,TM.y+ShiftArea,0.001,False);
+    TFrame1(ActualFrame).Plotear(Result.resString,TM.x-ShiftArea,TM.y+ShiftArea,False);
     TFrame1(ActualFrame).PlotearPoints(MList,True);
   end;
 end;
@@ -234,7 +234,7 @@ begin
 
     if MTRS.State then begin
       Result.ResString:= 'f(x)= '+MTRS.s1+#13#10+'  R= '+MTRS.s2;
-      TFrame1(ActualFrame).Plotear(MTRS.s1,TM.x,TM.y,0.001,False);
+      TFrame1(ActualFrame).Plotear(MTRS.s1,TM.x,TM.y,False);
       TFrame1(ActualFrame).PlotearPoints(MPD,False);
     end
     else

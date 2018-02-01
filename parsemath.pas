@@ -15,31 +15,31 @@ type
     Procedure AddFunctions();
   public
     Expression: string;
-    function NewValue( Variable:string; Value: Double ): Double;
+    procedure NewValue( Variable:string; Value: Double );
     procedure AddVariable( Variable: string; Value: Double );
     procedure AddString( Variable: string; Value: string );
     function Evaluate(  ): Double;
-    constructor create();
-    destructor destroy;
+    constructor Create();
+    destructor Destroy(); override;
   end;
 
 function IsNumber(AValue: TExprFloat): Boolean;
 
 implementation
 
-constructor TParseMath.create;
+constructor TParseMath.Create();
 begin
   FParser:= TFPExpressionParser.Create( nil );
   FParser.Builtins := [ bcMath ];
   AddFunctions();
 end;
 
-destructor TParseMath.destroy;
+destructor TParseMath.Destroy();
 begin
   FParser.Destroy;
 end;
 
-function TParseMath.NewValue( Variable: string; Value: Double ): Double;
+procedure TParseMath.NewValue( Variable: string; Value: Double );
 begin
   FParser.IdentifierByName(Variable).AsFloat:= Value;
 end;
