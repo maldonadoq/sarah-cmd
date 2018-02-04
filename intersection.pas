@@ -224,7 +224,8 @@ begin
   for i:=0 to MBZ.Count-1 do begin
     xtmp:= MBisIni(TMPoint(MBZ.Items[i]).x,TMPoint(MBZ.Items[i]).y,0.01,fn);
     xtm1:= MSecIni(xtmp,e,fn);
-    MSP.Add(TMPoint.Create(xtm1,Func(xtm1,f)));
+    if (xtm1>=xmin) and (xtm1<=xmax) then
+       MSP.Add(TMPoint.Create(xtm1,Func(xtm1,f)));
   end;
   Result:= MSP;
 end;

@@ -200,10 +200,11 @@ begin
     MEX:= TExtrapolation.Create(MPD,4);
 
     case Args[1].ResString of
-      'Lineal':      MTRS:= MEX.MLineal();
-      'Exponencial': MTRS:= MEX.MExponencial();
-      'Logaritmo': MTRS:= MEX.MLogaritmo();
-      'Senoidal': MTRS:= MEX.MSenoidal();
+      'Lineal':      MTRS:= MEX.Choose(Args[1].ResString);
+      'Exponencial': MTRS:= MEX.Choose(Args[1].ResString);
+      'Logaritmo':   MTRS:= MEX.Choose(Args[1].ResString);
+      'Senoidal':    MTRS:= MEX.Choose(Args[1].ResString);
+      'Best':        MTRS:= MEX.MBest();
     end;
 
     if MTRS.State then begin
@@ -280,6 +281,7 @@ begin
   fa:= '('+Args[0].ResString+')-('+Args[1].ResString+')';
   LTM:= MIP.MBoth(-XLim,XLim,0.001,fa,Args[1].ResString);
   if LTM.Count<2 then begin
+    TFrame1(ActualFrame).PlotearIntersection(Args[0].ResString,Args[1].ResString,-XLim,XLim);
     Result.resFloat:= NULLF;
     Exit;
   end

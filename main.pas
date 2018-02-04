@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, uCmdBox, TAGraph, TATools, Forms, Controls,
   Graphics, Dialogs, ExtCtrls, StdCtrls, Grids, ComCtrls, ColorBox,
   FrameGraphic, CmdParse, FuncParse, FrameStrGrid, Func, OpeBin, TASeries,
-  Evaluate;
+  Evaluate, Types;
 
 type
 
@@ -17,20 +17,23 @@ type
   TForm1 = class(TForm)
     ChartPlot: TChart;
     ChartToolset1: TChartToolset;
+    ChartToolset1DataPointClickTool1: TDataPointClickTool;
     CmdL: TCmdBox;
     BoxCmd: TGroupBox;
     LineColorBox: TColorBox;
     PanelFrame: TPanel;
     PanelVariable: TPanel;
     SgVariable: TStringGrid;
-    PanelSplitter: TSplitter;
-    VarSplitter: TSplitter;
-    SelEquation: TStatusBar;
+    CmdSplitter: TSplitter;
+    Splitter1: TSplitter;
 
+    procedure ChartToolset1DataPointClickTool1PointClick(ATool: TChartTool;
+      APoint: TPoint);
     procedure CmdLInput(ACmdBox: TCmdBox; Input: string);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
+    FuncSelected: boolean;
     idxcolor: integer;
     procedure StartCommand;
     procedure InstantFrame(FrameSelected: integer; state: boolean);
@@ -42,6 +45,7 @@ type
     procedure ChartVisible(state: boolean);
     procedure MNewFunction(fn: string);
     procedure Plotear(fn: string; xmin,xmax: real);
+    procedure ClearPlot();
     function Funct(fn: string): real;
     function FunctStr(fn: string): string;
     function VarOrFunct(fn,tv: string): TRS;
@@ -60,16 +64,17 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  MFunct:= TList.Create;
+  MFunct:= TStringList.Create;
   TLSFunct:= TList.Create;
   MP:= TEvaluate.Create();
-  idxcolor:= 0;
+  idxcolor:= 9;
+  FuncSelected:= True;
   ShiftArea:= 0.2;
   XLim:= 10;
   NULLF:= 99999;
   TypeVarF:= 'function'; TypeVarM:= 'matrix';
   TypeVarR:= 'real';   TypeVarN:= 'null';
-  TypeVarB:= 'base'; F1:=''; F2:='';
+  TypeVarB:= 'base'; F1:='x'; F2:='-x';
   SgVariable.RowCount:= 10;
   SgVariable.Cells[0,0]:= 'name'; SgVariable.Cells[2,0]:= 'type';     SgVariable.Cells[1,0]:= 'value';
   SgVariable.Cells[0,1]:= 'f(x)'; SgVariable.Cells[2,1]:= 'function'; SgVariable.Cells[1,1]:= 'sin(x)';
@@ -169,7 +174,7 @@ end;
 
 procedure TForm1.MNewFunction(fn: string);
 begin
-  MFunct.Add(Pointer(fn));
+  MFunct.Add(fn);
   TLSFunct.Add(TLineSeries.Create(ChartPlot));
   with TLineSeries(TLSFunct[TLSFunct.Count-1]) do begin
     Name:= 'FunctionName'+IntToStr(TLSFunct.Count);
@@ -192,6 +197,19 @@ begin
     AddXY(x,MP.Func(x,fn));
     x:= x+h
   until(x>=xmax);
+end;
+
+procedure TForm1.ClearPlot();
+var
+  i: integer;
+begin
+  for i:=0 to TLSFunct.Count-1 do
+    TLineSeries(TLSFunct.Items[i]).Destroy;
+
+  MFunct.Clear;
+  TLSFunct.Clear;
+  ChartPlot.ClearSeries;
+  idxcolor:= 9;
 end;
 
 function TForm1.VarOrFunct(fn,tv: string): TRS;
@@ -264,7 +282,14 @@ begin
         end
         else if pos('plotear',FinalLine)>0 then begin
           Final:= SubString(FinalLine,Pos('(',FinalLine)+1, Length(FinalLine)-1);
-          CmdL.WriteLn(Final);
+          if Final='clear' then begin
+            ClearPlot();
+            Exit;
+          end
+          else if Final='view' then begin
+            ChartVisible(true);
+            Exit;
+          end;
           MV:= FindVariableI(Final);
           if MV.State then begin
             if(MV.s2<>'function') then begin
@@ -289,17 +314,19 @@ begin
           Funct(FinalLine);
         end
         else if pos('select',FinalLine)>0 then begin
-          if (F1<>'') and (F2<>'') then begin
-            if pos('intersection',FinalLine)>0 then begin
-              Final:= 'intersection('+#39+F1+#39+','+#39+F2+#39+',-'+FloatToStr(XLim)+','+FloatToStr(XLim)+',0.001)';
-              InstantFrame(0,True);
-              CmdL.WriteLn(FunctStr(Final));
-            end
-            else if pos('area',FinalLine)>0 then begin
-              Final:= 'areaII('+#39+F1+#39+','+#39+F2+#39+')';
-              InstantFrame(0,True);
-              CmdL.WriteLn('  '+FloatToStr(Funct(Final)))
-            end;
+          if pos('intersection',FinalLine)>0 then begin
+            Final:= 'intersection('+#39+F1+#39+','+#39+F2+#39+',-'+FloatToStr(XLim)+','+FloatToStr(XLim)+',0.001)';
+            InstantFrame(0,True);
+            CmdL.WriteLn(FunctStr(Final));
+          end
+          else if pos('area',FinalLine)>0 then begin
+            Final:= 'areaII('+#39+F1+#39+','+#39+F2+#39+')';
+            InstantFrame(0,True);
+            RF:= Funct(Final);
+            if(RF<>NULLF) then
+              CmdL.WriteLn('  '+FloatToStr(RF))
+            else
+              CmdL.WriteLn('  Does not Exist Area!!');
           end;
         end
         else if pos('areaII',FinalLine)>0 then begin
@@ -310,7 +337,11 @@ begin
           end;
           FinalLine:= MRS.Value;
           InstantFrame(0,True);
-          CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)))
+          RF:= Funct(FinalLine);
+          if(RF<>NULLF) then
+            CmdL.WriteLn('  '+FloatToStr(RF))
+          else
+            CmdL.WriteLn('  Does not Exist Area!!');
         end
         else if pos('areaI',FinalLine)>0 then begin
           MRS:= VarOrFunct(FinalLine,'function');
@@ -446,6 +477,31 @@ begin
   end;
 end;
 
+procedure TForm1.ChartToolset1DataPointClickTool1PointClick(ATool: TChartTool;
+  APoint: TPoint);
+begin
+  with ATool as TDatapointClickTool do begin
+    if (Series is TLineSeries) then begin
+      with TLineSeries(Series) do begin
+        if(FuncSelected) then begin
+          F1:= MFunct[Tag];
+          ShowMessage('f(x): '+F1);
+          FuncSelected:= False;
+        end
+        else begin
+          if(F1 <> MFunct[Tag]) then begin
+            F2:= MFunct[Tag];
+            ShowMessage('g(x): '+F2);
+            FuncSelected:= True;
+          end
+          else
+            ShowMessage('Seleccione otra función, no la misma!!');
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TForm1.ExtraFrameT();
 begin
   if Assigned(ExtraFrame) then
@@ -500,16 +556,13 @@ procedure TForm1.ChartVisible(state: boolean);
 begin
   if state then begin
     Visible();
-    SelEquation.Visible:= True;
-    SelEquation.Align:= alBottom;
     ChartPlot.Visible:= True;
     ChartPlot.Align:= alClient;
   end
   else begin
+    Invisible();
     ChartPlot.Align:= alNone;
     ChartPlot.Visible:= False;
-    SelEquation.Align:= alNone;
-    SelEquation.Visible:= False;
   end;
 end;
 
@@ -521,8 +574,10 @@ end;
 
 procedure TForm1.Visible;
 begin
+  CmdSplitter.Align:= alNone;
   CmdL.Align:= alBottom;
   PanelFrame.Visible:= True;
+  CmdSplitter.Align:= alBottom;
 end;
 
 {$R *.lfm}

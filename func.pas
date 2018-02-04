@@ -68,10 +68,18 @@ type
     State: boolean;
   end;
 
+type
+  TSE = record
+    Value: string;
+    R: real;
+    State: boolean;
+  end;
+
 var
   NULLF, ShiftArea, XLim: real;
   F1,F2,TypeVarF,TypeVarM,TypeVarR,TypeVarN, TypeVarB: string;
-  MFunct, TLSFunct: TList;
+  TLSFunct: TList;
+  MFunct: TStringList;
 
 function XIntervalo(MP: TList): TMPoint;
 function StrToBase(base: string): TList;

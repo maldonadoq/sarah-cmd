@@ -16,10 +16,13 @@ type
       Xm, Ym: real;
       Ndc: integer;
       MParse: TParseMath;
-      function MLineal(): TSRA;
-      function MExponencial(): TSRA;
-      function MLogaritmo(): TSRA;
-      function MSenoidal(): TSRA;
+      function MLineal(): TSE;
+      function MExponencial(): TSE;
+      function MLogaritmo(): TSE;
+      function MSenoidal(): TSE;
+      function MBest(): TSRA;
+      function Choose(op: string): TSRA;
+      function ToStr(TM: TSE): TSRA;
       function Func(x: real; fn: string): real;
       function MR(fn: string; MP: TList): real;
   end;
@@ -74,7 +77,7 @@ begin
   Result:= MParse.Evaluate();
 end;
 
-function TExtrapolation.MLineal(): TSRA;
+function TExtrapolation.MLineal(): TSE;
 var
   i: integer;
   fs, ss, bt: real;
@@ -94,11 +97,11 @@ begin
     Sol:= Format('(%*.*f*x)+%*.*f',[0,Ndc,fs/ss,0,Ndc,bt]);
 
   Result.State:= True;
-  Result.s1 := Sol;
-  Result.s2:= Format('%*.*f',[0,Ndc,MR(Sol,MDP)]);
+  Result.Value:= Sol;
+  Result.R:= MR(Sol,MDP);
 end;
 
-function TExtrapolation.MExponencial(): TSRA;
+function TExtrapolation.MExponencial(): TSE;
 var
   i: integer;
   Ymt, c, A, fs, ss: real;
@@ -112,7 +115,7 @@ begin
     TP:= TMPoint(MDP.Items[i]);
     if(TP.y<=0) then begin
       Result.State:= False;
-      Result.s1:= 'Variable y!<=0';
+      Result.Value:= 'Variable y!<=0';
       Exit;
     end;
     Ymt := Ymt + Ln(TP.y);
@@ -140,11 +143,11 @@ begin
   end;
 
   Result.State:= True;
-  Result.s1:= Sol;
-  Result.s2:= Format('%*.*f',[0,Ndc,MR(Solt,ML)]);
+  Result.Value:= Sol;
+  Result.R:= MR(Solt,ML);
 end;
 
-function TExtrapolation.MLogaritmo(): TSRA;
+function TExtrapolation.MLogaritmo(): TSE;
 var
   i: integer;
   slny,sln,slnp,m,b: real;
@@ -156,7 +159,7 @@ begin
     TM:= TMPoint(MDP.Items[i]);
     if(TM.x<=0) then begin
       Result.State:= False;
-      Result.s1:= 'Variable x!<=0';
+      Result.Value:= 'Variable x!<=0';
       Exit;
     end;
     slny:= slny+(Ln(TM.x)*TM.y);
@@ -173,15 +176,49 @@ begin
     Sol:= Format('(%*.*f*ln(x))+%*.*f',[0,Ndc,m,0,Ndc,b]);
 
   Result.State:= True;
-  Result.s1:= Sol;
-  Result.s2:= Format('%*.*f',[0,Ndc,MR(Sol,MDP)]);
+  Result.Value:= Sol;
+  Result.R:= MR(Sol,MDP);
 end;
 
-function TExtrapolation.MSenoidal(): TSRA;
+function TExtrapolation.MSenoidal(): TSE;
 begin
   Result.State:= True;
-  Result.s1:= 'sin(x)';
-  Result.s2:= '0.001'
+  Result.Value:= 'sin(x)';
+  Result.R:= 0.001;
+end;
+
+function TExtrapolation.ToStr(TM: TSE): TSRA;
+begin
+  Result.State:= TM.State;
+  if TM.State then begin
+    Result.s1:= TM.Value;
+    Result.s2:= Format('%*.*f',[0,Ndc,TM.R]);
+  end;
+end;
+
+function TExtrapolation.Choose(op: string): TSRA;
+var
+  TM: TSE;
+begin
+  case op of
+    'Lineal': TM:= MLineal();
+    'Exponencial': TM:= MExponencial();
+    'Logaritmo': TM:= MLogaritmo();
+    'Senoidal': TM:= MSenoidal();
+  end;
+  Result:= ToStr(TM);
+end;
+
+function TExtrapolation.MBest(): TSRA;
+var
+  A,B,C,D: TSE;
+begin
+  A:= MLineal;
+  B:= MExponencial;
+  C:= MLogaritmo;
+  D:= MSenoidal;
+
+  Result:= ToStr(A);
 end;
 
 end.
