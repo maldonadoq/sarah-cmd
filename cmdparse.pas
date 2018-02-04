@@ -66,13 +66,15 @@ begin
      AddFunction('interpolation', 'S', 'SS', @ExprInterpolation);
      AddFunction('edo', 'S', 'SFFFFSS', @ExprEdo);
      AddFunction('extrapolation', 'S', 'SS', @ExprMethExtra);
+     AddFunction('areaI', 'F', 'SFFF', @ExprAreaI);
+     AddFunction('areaII', 'F', 'SS', @ExprAreaII);
   end
 end;
 
 procedure TCmdParse.AddVariable(Variable: string; Value: Double);
 var Len: Integer;
 begin
-  Len:= length(identifier) + 1;
+  Len:= Length(identifier)+1;
   SetLength(identifier,Len);
   identifier[Len-1]:= FParser.Identifiers.AddFloatVariable(Variable, Value);
 end;
