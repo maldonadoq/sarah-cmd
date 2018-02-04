@@ -5,26 +5,33 @@ unit Main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, uCmdBox, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, Grids, FrameGraphic, CmdParse, FuncParse, FrameStrGrid,
-  Func;
+  Classes, SysUtils, FileUtil, uCmdBox, TAGraph, TATools, Forms, Controls,
+  Graphics, Dialogs, ExtCtrls, StdCtrls, Grids, ComCtrls, ColorBox,
+  FrameGraphic, CmdParse, FuncParse, FrameStrGrid, Func, OpeBin, TASeries,
+  Evaluate;
 
 type
 
   { TForm1 }
 
   TForm1 = class(TForm)
+    ChartPlot: TChart;
+    ChartToolset1: TChartToolset;
     CmdL: TCmdBox;
     BoxCmd: TGroupBox;
+    LineColorBox: TColorBox;
     PanelFrame: TPanel;
     PanelVariable: TPanel;
     SgVariable: TStringGrid;
     PanelSplitter: TSplitter;
+    VarSplitter: TSplitter;
+    SelEquation: TStatusBar;
 
     procedure CmdLInput(ACmdBox: TCmdBox; Input: string);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
+    idxcolor: integer;
     procedure StartCommand;
     procedure InstantFrame(FrameSelected: integer; state: boolean);
     procedure ExtraFrameT();
@@ -32,13 +39,18 @@ type
     procedure Invisible;
     procedure PutVariable(vv: VectString);
     procedure ClearVariable;
+    procedure ChartVisible(state: boolean);
+    procedure MNewFunction(fn: string);
+    procedure Plotear(fn: string; xmin,xmax: real);
     function Funct(fn: string): real;
     function FunctStr(fn: string): string;
-    function VarOrFunct(fn: string): TRS;
+    function VarOrFunct(fn,tv: string): TRS;
     function FindVariable(vr: string): TRI;
-    function FSArguments(tx: string): TRS;
+    function FindVariableI(vr: string): TSRA;
+    function FSArguments(tx,tv: string): TRS;
   public
     MCmdParse: TCmdParse;
+    MP: TEvaluate;
   end;
 
 var
@@ -48,16 +60,30 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  ShiftArea:= 0.5;
+  MFunct:= TList.Create;
+  TLSFunct:= TList.Create;
+  MP:= TEvaluate.Create();
+  idxcolor:= 0;
+  ShiftArea:= 0.2;
+  XLim:= 10;
   NULLF:= 99999;
   TypeVarF:= 'function'; TypeVarM:= 'matrix';
   TypeVarR:= 'real';   TypeVarN:= 'null';
-  SgVariable.Cells[0,0]:= 'name';
-  SgVariable.Cells[1,0]:= 'value';
-  SgVariable.Cells[2,0]:= 'type';
+  TypeVarB:= 'base'; F1:=''; F2:='';
+  SgVariable.RowCount:= 10;
+  SgVariable.Cells[0,0]:= 'name'; SgVariable.Cells[2,0]:= 'type';     SgVariable.Cells[1,0]:= 'value';
+  SgVariable.Cells[0,1]:= 'f(x)'; SgVariable.Cells[2,1]:= 'function'; SgVariable.Cells[1,1]:= 'sin(x)';
+  SgVariable.Cells[0,2]:= 'g(x)'; SgVariable.Cells[2,2]:= 'function'; SgVariable.Cells[1,2]:= 'cos(x)';
+  SgVariable.Cells[0,3]:= 'h(x)'; SgVariable.Cells[2,3]:= 'function'; SgVariable.Cells[1,3]:= 'power(x,2)-2';
+  SgVariable.Cells[0,4]:= 's(x)'; SgVariable.Cells[2,4]:= 'function'; SgVariable.Cells[1,4]:= 'sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))';
+  SgVariable.Cells[0,5]:= 'M';    SgVariable.Cells[2,5]:= 'matrix';   SgVariable.Cells[1,5]:= '[1,2:2,3]';
+  SgVariable.Cells[0,6]:= 'N';    SgVariable.Cells[2,6]:= 'matrix';   SgVariable.Cells[1,6]:= '[-6,2:4,3]';
+  SgVariable.Cells[0,7]:= 'B';    SgVariable.Cells[2,7]:= 'base';     SgVariable.Cells[1,7]:= '[(1,5):(2,4):(3,2):(4,9)]';
+  SgVariable.Cells[0,8]:= 'p';    SgVariable.Cells[2,8]:= 'real';     SgVariable.Cells[1,8]:= '10';
+  SgVariable.Cells[0,9]:= 'q';    SgVariable.Cells[2,9]:= 'real';     SgVariable.Cells[1,9]:= '2';
+
   Invisible;
   MCmdParse:= TCmdParse.Create();
-
   CmdL.StartRead(clLime, clBlack,'Sarah] ',clLime, clBlack);
   StartCommand;
 end;
@@ -92,7 +118,21 @@ begin
     end;
 end;
 
-function TForm1.FSArguments(tx: string): TRS;
+function TForm1.FindVariableI(vr: string): TSRA;
+var
+  i: integer;
+begin
+  Result.State:= False;
+  for i:=1 to SgVariable.RowCount-1 do
+    if SgVariable.Cells[0,i]=vr then begin
+      Result.State:= True;
+      Result.s1:= SgVariable.Cells[1,i];
+      Result.s2:= SgVariable.Cells[2,i];
+      Exit;
+    end;
+end;
+
+function TForm1.FSArguments(tx,tv: string): TRS;
 var
   MTRSA: TSRA;
   MRI,MRII: TRI;
@@ -106,8 +146,15 @@ begin
     MRII:= FindVariable(MTRSA.s2);
 
     if MRI.State and MRII.State then begin
-      st:= StringReplace(fn, MTRSA.s1,#39+SgVariable.Cells[1,MRI.Value]+#39,[rfReplaceAll]);
-      s:=  StringReplace(st, MTRSA.s2,#39+SgVariable.Cells[1,MRII.Value]+#39,[rfReplaceAll]);
+      if (SgVariable.Cells[2,MRI.Value]=tv) and (SgVariable.Cells[2,MRII.Value]=tv) then begin
+        st:= StringReplace(fn, MTRSA.s1,#39+SgVariable.Cells[1,MRI.Value]+#39,[rfReplaceAll]);
+        s := StringReplace(st, MTRSA.s2,#39+SgVariable.Cells[1,MRII.Value]+#39,[rfReplaceAll]);
+      end
+      else begin
+        Result.State:= False;
+        Result.Value:= '  Wrong Data Type';
+        Exit;
+      end;
     end
     else begin
       Result.State:= False;
@@ -120,7 +167,34 @@ begin
   Result.Value:= s;
 end;
 
-function TForm1.VarOrFunct(fn: string): TRS;
+procedure TForm1.MNewFunction(fn: string);
+begin
+  MFunct.Add(Pointer(fn));
+  TLSFunct.Add(TLineSeries.Create(ChartPlot));
+  with TLineSeries(TLSFunct[TLSFunct.Count-1]) do begin
+    Name:= 'FunctionName'+IntToStr(TLSFunct.Count);
+    Tag:= MFunct.Count-1;
+    LinePen.Color:= LineColorBox.Colors[idxcolor];  ;
+  end;
+  idxcolor:= idxcolor+1;
+  ChartPlot.AddSeries(TLineSeries(TLSFunct[TLSFunct.Count-1]));
+end;
+
+procedure TForm1.Plotear(fn: string; xmin,xmax: real);
+var
+  x,h: Real;
+begin
+  x:= xmin;
+  h:= 0.01;
+
+  MNewFunction(fn);
+  with TLineSeries(TLSFunct[TLSFunct.Count-1]) do repeat
+    AddXY(x,MP.Func(x,fn));
+    x:= x+h
+  until(x>=xmax);
+end;
+
+function TForm1.VarOrFunct(fn,tv: string): TRS;
 var
   MRS: TRS;
   MRI: TRI;
@@ -131,11 +205,18 @@ begin
   s:= fn;
   if not MRS.State then begin
     MRI:= FindVariable(MRS.Value);
-    if MRI.State then
-      s:= StringReplace(fn, MRS.Value, #39+SGVariable.Cells[1,MRI.Value]+#39, [rfReplaceAll])
+    if MRI.State then begin
+      if SGVariable.Cells[2,MRI.Value]=tv then
+        s:= StringReplace(fn, MRS.Value, #39+SGVariable.Cells[1,MRI.Value]+#39, [rfReplaceAll])
+      else begin
+        Result.State:= False;
+        Result.Value:= '  Wrong Data Type';
+        Exit;
+      end;
+    end
     else begin
       Result.State:= False;
-      Result.Value:= '';
+      Result.Value:= '  Does Not Exist This Variable!';
       Exit;
     end;
   end;
@@ -145,15 +226,17 @@ end;
 
 procedure TForm1.CmdLInput(ACmdBox: TCmdBox; Input: string);
 var
-  FinalLine, RTemp: string;
+  Final,FinalLine, RTemp: string;
   RF: real;
   MRS: TRS;
   MRI: TRI;
   MVS: VectString;
+  MV,MVA,MVB: TSRA;
 begin
   try
     Input:= Trim(Input);
     FinalLine:= StringReplace(Input, ' ', '', [rfReplaceAll]);
+    ChartVisible(False);
     case input of
       'help': ShowMessage( 'help ');
       'exit': Application.Terminate;
@@ -179,10 +262,25 @@ begin
 
           InstantFrame(0,False);
         end
+        else if pos('plotear',FinalLine)>0 then begin
+          Final:= SubString(FinalLine,Pos('(',FinalLine)+1, Length(FinalLine)-1);
+          CmdL.WriteLn(Final);
+          MV:= FindVariableI(Final);
+          if MV.State then begin
+            if(MV.s2<>'function') then begin
+              CmdL.WriteLn('  Wrong Data Type');
+              Exit;
+            end
+            else
+              Final:= MV.s1;
+          end;
+          ChartVisible(true);
+          Plotear(Final,-XLim,XLim);
+        end
         else if pos('plot',FinalLine)>0 then begin
-          MRS:= VarOrFunct(FinalLine);
+          MRS:= VarOrFunct(FinalLine,'function');
           if not MRS.State then begin
-            CmdL.WriteLn('  No Existe Esta Variable');
+            CmdL.WriteLn(MRS.Value);
             Exit;
           end;
           FinalLine:= MRS.Value;
@@ -190,8 +288,43 @@ begin
           InstantFrame(0,True);
           Funct(FinalLine);
         end
+        else if pos('select',FinalLine)>0 then begin
+          if (F1<>'') and (F2<>'') then begin
+            if pos('intersection',FinalLine)>0 then begin
+              Final:= 'intersection('+#39+F1+#39+','+#39+F2+#39+',-'+FloatToStr(XLim)+','+FloatToStr(XLim)+',0.001)';
+              InstantFrame(0,True);
+              CmdL.WriteLn(FunctStr(Final));
+            end
+            else if pos('area',FinalLine)>0 then begin
+              Final:= 'areaII('+#39+F1+#39+','+#39+F2+#39+')';
+              InstantFrame(0,True);
+              CmdL.WriteLn('  '+FloatToStr(Funct(Final)))
+            end;
+          end;
+        end
+        else if pos('areaII',FinalLine)>0 then begin
+          MRS:= FSArguments(FinalLine,'function');
+          if not MRS.State then begin
+            CmdL.WriteLn('  No Existe Alguna Variable');
+            Exit;
+          end;
+          FinalLine:= MRS.Value;
+          InstantFrame(0,True);
+          CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)))
+        end
+        else if pos('areaI',FinalLine)>0 then begin
+          MRS:= VarOrFunct(FinalLine,'function');
+          if not MRS.State then begin
+            CmdL.WriteLn('  No Existe Esta Variable');
+            Exit;
+          end;
+          FinalLine:= MRS.Value;
+
+          InstantFrame(0,True);
+          CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)))
+        end
         else if pos('integrate',FinalLine)>0 then begin
-          MRS:= VarOrFunct(FinalLine);
+          MRS:= VarOrFunct(FinalLine,'function');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Esta Variable');
             Exit;
@@ -206,7 +339,7 @@ begin
             CmdL.WriteLn('  No Existe Este Metodo');
         end
         else if pos('raiz',FinalLine)>0 then begin
-          MRS:= VarOrFunct(FinalLine);
+          MRS:= VarOrFunct(FinalLine,'function');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Esta Variable');
             Exit;
@@ -217,7 +350,7 @@ begin
           CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)));
         end
         else if pos('interpolation',FinalLine)>0 then begin
-          MRS:= VarOrFunct(FinalLine);
+          MRS:= VarOrFunct(FinalLine,'base');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Esta Variable');
             Exit;
@@ -236,7 +369,7 @@ begin
             Exit;
           end;
 
-          MRS:= VarOrFunct(FinalLine);
+          MRS:= VarOrFunct(FinalLine,'function');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Esta Variable');
             Exit;
@@ -255,7 +388,7 @@ begin
           CmdL.WriteLn('  '+FunctStr(FinalLine));
         end
         else if pos('matrix',FinalLine)>0 then begin
-          MRS:= FSArguments(FinalLine);
+          MRS:= FSArguments(FinalLine,'matrix');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Alguna Variable');
             Exit;
@@ -265,7 +398,7 @@ begin
           CmdL.WriteLn(FunctStr(FinalLine));
         end
         else if pos('intersection',FinalLine)>0 then begin
-          MRS:= FSArguments(FinalLine);
+          MRS:= FSArguments(FinalLine,'function');
           if not MRS.State then begin
             CmdL.WriteLn('  No Existe Alguna Variable');
             Exit;
@@ -273,6 +406,38 @@ begin
           FinalLine:= MRS.Value;
           InstantFrame(0,True);
           CmdL.WriteLn(FunctStr(FinalLine));
+        end
+        else begin
+          if pos('+',FinalLine)>0 then begin
+            MV:= VarBin(FinalLine,IdxStrT(FinalLine,'+')-1);
+            MVA:= FindVariableI(MV.s1);
+            MVB:= FindVariableI(MV.s2);
+            if MVA.State and MVB.State then CmdL.WriteLn(OpeTwo(MVA,MVB,'+'))
+            else CmdL.WriteLn('  Does Not Exist Someone Variable');
+          end
+          else if pos('-',FinalLine)>0 then begin
+            MV:= VarBin(FinalLine,IdxStrT(FinalLine,'-')-1);
+            MVA:= FindVariableI(MV.s1);
+            MVB:= FindVariableI(MV.s2);
+            if MVA.State and MVB.State then CmdL.WriteLn(OpeTwo(MVA,MVB,'-'))
+            else CmdL.WriteLn('  Does Not Exist Someone Variable');
+          end
+          else if pos('*',FinalLine)>0 then begin
+            MV:= VarBin(FinalLine,IdxStrT(FinalLine,'*')-1);
+            MVA:= FindVariableI(MV.s1);
+            MVB:= FindVariableI(MV.s2);
+            if MVA.State and MVB.State then CmdL.WriteLn(OpeTwo(MVA,MVB,'*'))
+            else CmdL.WriteLn('  Does Not Exist Someone Variable');
+          end
+          else if pos('/',FinalLine)>0 then begin
+            MV:= VarBin(FinalLine,IdxStrT(FinalLine,'/')-1);
+            MVA:= FindVariableI(MV.s1);
+            MVB:= FindVariableI(MV.s2);
+            if MVA.State and MVB.State then CmdL.WriteLn(OpeTwo(MVA,MVB,'/'))
+            else CmdL.WriteLn('  Does Not Exist Someone Variable');
+          end
+          else
+            WriteLn('Exit');
         end;
       end;
   end;
@@ -331,6 +496,23 @@ begin
    CmdL.StartRead(clLime, clBlack,'Sarah] ',clLime, clBlack);
 end;
 
+procedure TForm1.ChartVisible(state: boolean);
+begin
+  if state then begin
+    Visible();
+    SelEquation.Visible:= True;
+    SelEquation.Align:= alBottom;
+    ChartPlot.Visible:= True;
+    ChartPlot.Align:= alClient;
+  end
+  else begin
+    ChartPlot.Align:= alNone;
+    ChartPlot.Visible:= False;
+    SelEquation.Align:= alNone;
+    SelEquation.Visible:= False;
+  end;
+end;
+
 procedure TForm1.Invisible;
 begin
   CmdL.Align:= alClient;
@@ -346,4 +528,3 @@ end;
 {$R *.lfm}
 
 end.
-

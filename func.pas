@@ -69,13 +69,15 @@ type
   end;
 
 var
-  NULLF, ShiftArea: real;
-  TypeVarF,TypeVarM,TypeVarR,TypeVarN, TypeVarB: string;
+  NULLF, ShiftArea, XLim: real;
+  F1,F2,TypeVarF,TypeVarM,TypeVarR,TypeVarN, TypeVarB: string;
+  MFunct, TLSFunct: TList;
 
 function XIntervalo(MP: TList): TMPoint;
 function StrToBase(base: string): TList;
 function NChar(s,sb: string): integer;
 function IdxStr(s,sb: string; idx: integer): integer;
+function IdxStrT(s,sb: string): integer;
 function SubString(base: string; ini,fin: integer): string;
 function StrToTMPoint(Tx: string): TMPoint;
 function PListToStr(MS: TList): string;
@@ -85,6 +87,7 @@ function NCharToFind(s,sb,sf: string): integer;
 function StrAssign(tx: string): VectString;
 function FirstArg(tx,s: string): TRS;
 function FSArg(tx: string): TSRA;
+function VarBin(tx: string; id: integer): TSRA;
 
 implementation
 
@@ -174,7 +177,6 @@ function StrToTMPoint(Tx: string): TMPoint;
 var
   PosCorcheteIni, PosCorcheteFin, PosSeparador: Integer;
   PosicionValidad: Boolean;
-  i: Integer;
   xmin,xmax: string;
 const
   CorcheteIni = '(';
@@ -210,6 +212,7 @@ var
   TM: TMPoint;
 begin
   dc:= 6;
+  Result:= '';
   for i:=0 to MS.Count-1 do begin
     TM:= TMPoint(MS[i]);
     if(i=(MS.Count-1)) then
@@ -243,7 +246,7 @@ function IdxStr(s,sb: string; idx: integer): integer;
 begin
   for Result:=idx+1 to Length(s)-1 do
     if(s[Result]=sb) then
-      Exit;    
+      Exit;
 
   Result:= Length(s);
 end;
@@ -297,7 +300,7 @@ begin
   Result[1]:= SubString(tx,idx+1,Length(tx));
   if Pos('(',Result[0])>0 then
     Result[2]:= TypeVarF
-  else if Pos('[',Result[0])>0 then
+  else if Pos('[',Result[1])>0 then
     Result[2]:= TypeVarM
   else if Pos('(',Result[1])>0 then
     Result[2]:= TypeVarB
@@ -337,6 +340,22 @@ begin
     Result.s1:= s1.Value;
     Result.s2:= s2.Value;
   end;
+end;
+
+function VarBin(tx: string; id: integer): TSRA;
+begin
+  Result.State:= True;
+  Result.s1:= Copy(tx,1,id);
+  Result.s2:= Copy(tx,id+2,Length(tx));
+end;
+
+function IdxStrT(s,sb: string): integer;
+begin
+  for Result:=1 to Length(s) do
+    if(s[Result]=sb) then
+      Exit;
+
+  Result:= Length(s);
 end;
 
 end.

@@ -1,7 +1,7 @@
 Sarah-Cmd
 ======================
 
-[sarah]: http://guides.github.com/overviews/mastering-markdown/
+[sarah]: https://github.com/percy00010/sarah-cmd
 
   - [Introduction](#introduction)
   - [Sarah](#sarah)
@@ -63,24 +63,27 @@ Sarah-Cmd
         * E-4[0.0001]
 ## Examples
     - Variables
-		  * f(x)= 'sin(x)'
-      * g(x)= 'cos(x)'
-      * h(x)= 'power(x,2)-2'
-      * B= '[(1,5):(2,4):(3,2):(4,9)]'
-      * M[]= [1,2:2,3]
-      * M[]= [-6,2:4,3]
-      * s(x)= 'sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))'
+		  * f(x)= sin(x)
+      * g(x)= cos(x)
+      * h(x)= power(x,2)-2
+      * B= [(1,5):(2,4):(3,2):(4,9)]
+      * M= [1,2:2,3]
+      * N= [-6,2:4,3]
+      * s(x)= sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))
 
     - Functions
       * plot(f(x);-10;10)
       * integrate(h(x);1;2;100;'Simpson1/3')
+      * areaI(h(x);1;2;100)
+      * areaII(f(x);g(x))
       * raiz(h(x);1;2;0.001;'Bisect';'')
       * interpolation(B;'Lagrange')
       * edo(s(x);-0.7;2;-0.7;0.49;'RungeKutta';'Graphic')
       * intersection(f(x);g(x);-10;10;0.001)
       * extrapolation('data.txt','Lineal')
+      * matrix(M;N;2;'inv')
 
 <!--:sparkles: :camel: :boom:-->
 
 * * *
--[Percy Maldonado Quispe](https://github.com/percy00010)
+[Percy Maldonado Quispe UCSP](https://github.com/percy00010)
