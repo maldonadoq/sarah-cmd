@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, fpexprpars, Forms, FrameGraphic, Integral, Intersection,
-  FrameStrGrid, Dialogs, Interpolacion, Func, Edo, Matrices, Extrapolacion;
+  FrameStrGrid, Dialogs, Interpolacion, Func, Edo, Matrices, Extrapolacion,
+  Evaluate;
 
 var
   ActualFrame, ExtraFrame: TFrame;
@@ -19,6 +20,8 @@ procedure ExprInterpolation(var Result: TFPExpressionResult; Const Args: TExprPa
 procedure ExprEdo(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprMatrix(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprMethExtra(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+procedure ExprAreaI(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+procedure ExprAreaII(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 
 implementation
 
@@ -78,36 +81,6 @@ begin
   Result.resFloat:= MTRB.Value;
   TFrame2(ActualFrame).PutSG(MTRB.MBox);
   MInters.Destroy();
-end;
-
-procedure ExprIntersection(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
-var
-  a,b,e: real;
-  MInters: TMethIntersection;
-  fn,fx,gx: string;
-  MS: TList;
-begin
-
-  fx:= Args[0].ResString;
-  gx:= Args[1].ResString;
-  a:= ArgToFloat(Args[2]);
-  b:= ArgToFloat(Args[3]);
-  e:= ArgToFloat(Args[4]);
-  fn:= '('+fx+')-('+gx+')';
-
-  MS:= TList.Create;
-  MInters:= TMethIntersection.Create();
-  TFrame1(ActualFrame).PlotearIntersection(fx,gx,a,b);
-
-  MS:= MInters.MBoth(a,b,e,fn,fx);
-  if(MS.Count=0) then Result.resString:= '  No Existe Intersection!!'
-  else begin
-    TFrame1(ActualFrame).PlotearPoints(MS,True);
-    Result.resString:= PListToStr(MS);
-  end;
-
-  MInters.Destroy();
-  MS.Destroy;
 end;
 
 procedure ExprInterpolation(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -230,6 +203,7 @@ begin
       'Lineal':      MTRS:= MEX.MLineal();
       'Exponencial': MTRS:= MEX.MExponencial();
       'Logaritmo': MTRS:= MEX.MLogaritmo();
+      'Senoidal': MTRS:= MEX.MSenoidal();
     end;
 
     if MTRS.State then begin
@@ -245,6 +219,87 @@ begin
     Result.ResString:= 'Data Empty!!';
 
   MPD.Destroy;
+end;
+
+procedure ExprAreaI(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  MIn: TIntegral;
+  a,b: real;
+  n: integer;
+begin
+  a:= ArgToFloat(Args[1]);
+  b:= ArgToFloat(Args[2]);
+  n:= Round(ArgToFloat(Args[3]));
+  MIn:= TIntegral.Create();
+  Result.resFloat:= MIn.SimpsonII(a,b,'abs('+Args[0].ResString+')',n);
+  TFrame1(ActualFrame).Plotear(Args[0].ResString,a-ShiftArea,b+ShiftArea,True);
+end;
+
+procedure ExprIntersection(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  a,b,e: real;
+  MInters: TMethIntersection;
+  fn,fx,gx: string;
+  MS: TList;
+begin
+
+  fx:= Args[0].ResString;
+  gx:= Args[1].ResString;
+  a:= ArgToFloat(Args[2]);
+  b:= ArgToFloat(Args[3]);
+  e:= ArgToFloat(Args[4]);
+  fn:= '('+fx+')-('+gx+')';
+
+  MS:= TList.Create;
+  MInters:= TMethIntersection.Create();
+  TFrame1(ActualFrame).PlotearIntersection(fx,gx,a,b);
+
+  MS:= MInters.MBoth(a,b,e,fn,fx);
+  if(MS.Count=0) then Result.resString:= '  No Existe Intersection!!'
+  else begin
+    TFrame1(ActualFrame).PlotearPoints(MS,True);
+    Result.resString:= PListToStr(MS);
+  end;
+
+  MInters.Destroy();
+  MS.Destroy;
+end;
+
+procedure ExprAreaII(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  MIn: TIntegral;
+  MIP: TMethIntersection;
+  LTM: TList;
+  TM: TMPoint;
+  MP: TEvaluate;
+  a,b: real;
+  n: integer;
+  fa,fn: string;
+begin
+  MIP:= TMethIntersection.Create();
+  fa:= '('+Args[0].ResString+')-('+Args[1].ResString+')';
+  LTM:= MIP.MBoth(-XLim,XLim,0.001,fa,Args[1].ResString);
+  if LTM.Count<2 then begin
+    Result.resFloat:= NULLF;
+    Exit;
+  end
+  else begin
+    TM:= XIntervalo(LTM);
+    MP:= TEvaluate.Create();
+    a:= TM.x; b:= TM.y; n:= 100;
+    LTM.Clear;
+    LTM.Add(TMPoint.Create(a,MP.Func(a,Args[0].ResString)));
+    LTM.Add(TMPoint.Create(b,MP.Func(b,Args[0].ResString)));
+
+    fn:= 'abs(('+Args[0].ResString+')-('+Args[1].ResString+'))';
+    MIn:= TIntegral.Create();
+    Result.resFloat:= MIn.SimpsonII(a,b,fn,n);
+    TFrame1(ActualFrame).PlotearIntersection(Args[0].ResString,Args[1].ResString,a-ShiftArea,b+ShiftArea);
+    TFrame1(ActualFrame).PlotearPoints(LTM,True);
+    MIn.Destroy(); TM.Destroy(); MP.Destroy();
+  end;
+  MIP.Destroy();
+  LTM.Destroy;
 end;
 
 end.
