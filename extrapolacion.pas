@@ -19,6 +19,7 @@ type
       function MLineal(): TSRA;
       function MExponencial(): TSRA;
       function MLogaritmo(): TSRA;
+      function MSenoidal(): TSRA;
       function Func(x: real; fn: string): real;
       function MR(fn: string; MP: TList): real;
   end;
@@ -174,6 +175,13 @@ begin
   Result.State:= True;
   Result.s1:= Sol;
   Result.s2:= Format('%*.*f',[0,Ndc,MR(Sol,MDP)]);
+end;
+
+function TExtrapolation.MSenoidal(): TSRA;
+begin
+  Result.State:= True;
+  Result.s1:= 'sin(x)';
+  Result.s2:= '0.001'
 end;
 
 end.
