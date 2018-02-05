@@ -29,6 +29,7 @@ Sarah-Cmd
     * raiz(Function;A;B;Error;Method Raiz;Newton[Derivada])
     * interpolation(Base;Method Interpolation)
     * edo(Function;A;B;xin;f(xin);Method Edo;Frame)	
+    * edp(Function;A;B;xin;f(xin);xpin;fp(xpin);Method Edo;Frame) 
     * intersection(Function;Function;A;B;Error)
     * extrapolation(Data,Method Extrapolation)
     * matrix(Matrix;Matrix;Esc-Pow;Operation)
@@ -58,6 +59,9 @@ Sarah-Cmd
         * 'Heun'
         * 'RungeKutta'
         * 'Dormand'
+    - Method Edp
+        * 'Euler'
+        * 'RungeKutta'
     - Frame
         * 'Table'   [Tabla de Datos]
         * 'Graphic' [Grafica!!!]
@@ -79,6 +83,7 @@ Sarah-Cmd
       * M= [1,2:2,3]
       * N= [-6,2:4,3]
       * s(x)= sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))
+      * p(x)= (2*exp(x))-(2*z)-y
 
     - Functions
       * plot(f(x);-10;10)      
@@ -88,6 +93,7 @@ Sarah-Cmd
       * raiz(h(x);1;2;0.001;'Bisect';'')
       * interpolation(B;'Lagrange')
       * edo(s(x);-0.7;2;-0.7;0.49;'RungeKutta';'Graphic')
+      * edp(p(x);0;5;0;0;0;1;'Euler';'Graphic')
       * intersection(f(x);g(x);-10;10;0.001)
       * extrapolation('data.txt','Lineal')
       * matrix(M;N;2;'inv')

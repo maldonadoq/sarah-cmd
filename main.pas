@@ -11,9 +11,6 @@ uses
   Evaluate, Types;
 
 type
-
-  { TForm1 }
-
   TForm1 = class(TForm)
     ChartPlot: TChart;
     ChartToolset1: TChartToolset;
@@ -75,17 +72,18 @@ begin
   TypeVarF:= 'function'; TypeVarM:= 'matrix';
   TypeVarR:= 'real';   TypeVarN:= 'null';
   TypeVarB:= 'base'; F1:='x'; F2:='-x';
-  SgVariable.RowCount:= 10;
+  SgVariable.RowCount:= 11;
   SgVariable.Cells[0,0]:= 'name'; SgVariable.Cells[2,0]:= 'type';     SgVariable.Cells[1,0]:= 'value';
   SgVariable.Cells[0,1]:= 'f(x)'; SgVariable.Cells[2,1]:= 'function'; SgVariable.Cells[1,1]:= 'sin(x)';
   SgVariable.Cells[0,2]:= 'g(x)'; SgVariable.Cells[2,2]:= 'function'; SgVariable.Cells[1,2]:= 'cos(x)';
   SgVariable.Cells[0,3]:= 'h(x)'; SgVariable.Cells[2,3]:= 'function'; SgVariable.Cells[1,3]:= 'power(x,2)-2';
   SgVariable.Cells[0,4]:= 's(x)'; SgVariable.Cells[2,4]:= 'function'; SgVariable.Cells[1,4]:= 'sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))';
-  SgVariable.Cells[0,5]:= 'M';    SgVariable.Cells[2,5]:= 'matrix';   SgVariable.Cells[1,5]:= '[1,2:2,3]';
-  SgVariable.Cells[0,6]:= 'N';    SgVariable.Cells[2,6]:= 'matrix';   SgVariable.Cells[1,6]:= '[-6,2:4,3]';
-  SgVariable.Cells[0,7]:= 'B';    SgVariable.Cells[2,7]:= 'base';     SgVariable.Cells[1,7]:= '[(1,5):(2,4):(3,2):(4,9)]';
-  SgVariable.Cells[0,8]:= 'p';    SgVariable.Cells[2,8]:= 'real';     SgVariable.Cells[1,8]:= '10';
-  SgVariable.Cells[0,9]:= 'q';    SgVariable.Cells[2,9]:= 'real';     SgVariable.Cells[1,9]:= '2';
+  SgVariable.Cells[0,5]:= 'p(x)'; SgVariable.Cells[2,5]:= 'function'; SgVariable.Cells[1,5]:= '(2*exp(x))-(2*z)-y';
+  SgVariable.Cells[0,6]:= 'M';    SgVariable.Cells[2,6]:= 'matrix';   SgVariable.Cells[1,6]:= '[1,2:2,3]';
+  SgVariable.Cells[0,7]:= 'N';    SgVariable.Cells[2,7]:= 'matrix';   SgVariable.Cells[1,7]:= '[-6,2:4,3]';
+  SgVariable.Cells[0,8]:= 'B';    SgVariable.Cells[2,8]:= 'base';     SgVariable.Cells[1,8]:= '[(1,5):(2,4):(3,2):(4,9)]';
+  SgVariable.Cells[0,9]:= 'r';    SgVariable.Cells[2,9]:= 'real';     SgVariable.Cells[1,9]:= '10';
+  SgVariable.Cells[0,10]:= 'q';   SgVariable.Cells[2,10]:= 'real';    SgVariable.Cells[1,10]:= '2';
 
   Invisible;
   MCmdParse:= TCmdParse.Create();
@@ -391,7 +389,7 @@ begin
           InstantFrame(0,True);
           CmdL.WriteLn(FunctStr(FinalLine));
         end
-        else if pos('edo',FinalLine)>0 then begin
+        else if (pos('edo',FinalLine)>0) or (pos('edp',FinalLine)>0) then begin
           if pos('Table',FinalLine)>0 then InstantFrame(1,true)
           else if pos('Graphic',FinalLine)>0 then InstantFrame(0,true)
           else begin

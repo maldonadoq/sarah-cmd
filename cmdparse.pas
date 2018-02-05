@@ -65,6 +65,7 @@ begin
      AddFunction('matrix', 'S', 'SSFS', @ExprMatrix);
      AddFunction('interpolation', 'S', 'SS', @ExprInterpolation);
      AddFunction('edo', 'S', 'SFFFFSS', @ExprEdo);
+     AddFunction('edp', 'S', 'SFFFFFFSS', @ExprEdp);
      AddFunction('extrapolation', 'S', 'SS', @ExprMethExtra);
      AddFunction('areaI', 'F', 'SFFF', @ExprAreaI);
      AddFunction('areaII', 'F', 'SS', @ExprAreaII);

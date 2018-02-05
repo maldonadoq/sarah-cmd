@@ -86,24 +86,6 @@ begin
      Result.resFloat := NaN;
 end;
 
-{
-Procedure ExprNewton( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
-var
-  x: Double;
-  f: string;
-  TheNewton: TNewton;
-begin
-   f:= Args[ 0 ].ResString;
-   x:= ArgToFloat( Args[ 1 ] );
-
-   TheNewton:= TNewton.Create;
-   TheNewton.InitialPoint:= x;
-   TheNewton.Expression:= f;
-   Result.ResFloat := TheNewton.Execute;
-
-   TheNewton.Destroy;
-end;
-}
 procedure ExprSin( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
   x: Double;
@@ -118,6 +100,14 @@ var
 begin
   x := ArgToFloat( Args[ 0 ] );
   Result.resFloat := cosh(x)
+end;
+
+procedure ExprSinh( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  x: Double;
+begin
+  x := ArgToFloat(Args[0]);
+  Result.resFloat := sinh(x)
 end;
 
 procedure ExprCos( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -179,6 +169,7 @@ begin
     AddFunction('sin', 'F', 'F', @ExprSin);
     AddFunction('sen', 'F', 'F', @ExprSin);
     AddFunction('cosh', 'F', 'F', @ExprCosh);
+    AddFunction('sinh', 'F', 'F', @ExprSinh);
     AddFunction('cos', 'F', 'F', @ExprCos);
     AddFunction('ln', 'F', 'F', @ExprLn);
     AddFunction('log', 'F', 'F', @ExprLog);

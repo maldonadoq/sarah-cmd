@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, fpexprpars, Forms, FrameGraphic, Integral, Intersection,
   FrameStrGrid, Dialogs, Interpolacion, Func, Edo, Matrices, Extrapolacion,
-  Evaluate;
+  Evaluate, Edp;
 
 var
   ActualFrame, ExtraFrame: TFrame;
@@ -22,6 +22,7 @@ procedure ExprMatrix(var Result: TFPExpressionResult; Const Args: TExprParameter
 procedure ExprMethExtra(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprAreaI(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprAreaII(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+procedure ExprEdp(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 
 implementation
 
@@ -302,6 +303,36 @@ begin
   end;
   MIP.Destroy();
   LTM.Destroy;
+end;
+
+procedure ExprEdp(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  MEDP: TEDP;
+  MB: TBox;
+  xi,xf,xin,yin,xpin,ypin: real;
+begin
+  Result.resString:= '  No Existe Este Metodo';
+  xi:=  ArgToFloat(Args[1]);
+  xf:=  ArgToFloat(Args[2]);
+  xin:= ArgToFloat(Args[3]);
+  yin:= ArgToFloat(Args[4]);
+  xpin:= ArgToFloat(Args[5]);
+  ypin:= ArgToFloat(Args[6]);
+
+  MEDP:= TEDP.Create();
+  case Args[7].ResString of
+    'Euler':      MB:= MEDP.Euler(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,'sinh(x)');
+    'RungeKutta': MB:= MEDP.RungeKutta4(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,'sinh(x)');
+    else Exit;
+  end;
+
+  case Args[8].ResString of
+    'Table': TFrame2(ActualFrame).PutSG(MB);
+    'Graphic': TFrame1(ActualFrame).PlotearPointFunct(TBoxToTLP(1,2,MB));
+  end;
+  Result.resString:= '';
+  MEDP.Destroy();
+  MB.Destroy();
 end;
 
 end.
