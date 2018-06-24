@@ -102,6 +102,14 @@ begin
   Result.resFloat := cosh(x)
 end;
 
+procedure ExprAtan( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  x: Double;
+begin
+  x := ArgToFloat( Args[ 0 ] );
+  Result.resFloat := ArcTan(x)
+end;
+
 procedure ExprSinh( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
   x: Double;
@@ -166,6 +174,7 @@ procedure TParseMath.AddFunctions();
 begin
   with FParser.Identifiers do begin
     AddFunction('tan', 'F', 'F', @ExprTan);
+    AddFunction('atan', 'F', 'F', @ExprATan);
     AddFunction('sin', 'F', 'F', @ExprSin);
     AddFunction('sen', 'F', 'F', @ExprSin);
     AddFunction('cosh', 'F', 'F', @ExprCosh);
@@ -175,7 +184,7 @@ begin
     AddFunction('log', 'F', 'F', @ExprLog);
     AddFunction('sqrt', 'F', 'F', @ExprSQRT);
     AddFunction('floor', 'F', 'F', @ExprFloor );
-    AddFunction('power', 'F', 'FF', @ExprPower); //two float arguments 'FF' , returns float
+    AddFunction('power', 'F', 'FF', @ExprPower);
   end
 end;
 

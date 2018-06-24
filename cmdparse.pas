@@ -59,13 +59,14 @@ procedure TCmdParse.AddFunctions();
 begin
   with FParser.Identifiers do begin
      AddFunction('plot', 'F', 'SFF', @ExprPlot);
+     AddFunction('derivate', 'F', 'SFF', @ExprDerivate);
      AddFunction('integrate', 'F', 'SFFFS', @ExprIntegrate);
      AddFunction('raiz', 'F', 'SFFFSS', @ExprInterMeth);
      AddFunction('intersection', 'S', 'SSFFF', @ExprIntersection);
      AddFunction('matrix', 'S', 'SSFS', @ExprMatrix);
      AddFunction('interpolation', 'S', 'SS', @ExprInterpolation);
-     AddFunction('edo', 'S', 'SFFFFSS', @ExprEdo);
-     AddFunction('edp', 'S', 'SFFFFFFSS', @ExprEdp);
+     AddFunction('edo', 'S', 'SFFFFFSSS', @ExprEdo);
+     AddFunction('edp', 'S', 'SFFFFFFFSSS', @ExprEdp);
      AddFunction('extrapolation', 'S', 'SS', @ExprMethExtra);
      AddFunction('areaI', 'F', 'SFFF', @ExprAreaI);
      AddFunction('areaII', 'F', 'SS', @ExprAreaII);

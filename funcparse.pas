@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, fpexprpars, Forms, FrameGraphic, Integral, Intersection,
   FrameStrGrid, Dialogs, Interpolacion, Func, Edo, Matrices, Extrapolacion,
-  Evaluate, Edp;
+  Evaluate, Edp, Derivate;
 
 var
   ActualFrame, ExtraFrame: TFrame;
@@ -23,6 +23,8 @@ procedure ExprMethExtra(var Result: TFPExpressionResult; Const Args: TExprParame
 procedure ExprAreaI(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprAreaII(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 procedure ExprEdp(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+procedure ExprDerivate(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+procedure SaveDataSG(Name: String);
 
 implementation
 
@@ -33,8 +35,23 @@ begin
   Result:= TList.Create;
   TFrame2(ExtraFrame).DataSG.LoadFromCSVFile(data);
   n:= TFrame2(ExtraFrame).DataSG.RowCount;
-  for i:=0 to n-1 do
+  for i:=1 to n-1 do
     Result.Add(TMPoint.Create(StrToFloat(TFrame2(ExtraFrame).DataSG.Cells[0,i]),StrToFloat(TFrame2(ExtraFrame).DataSG.Cells[1,i])))
+end;
+
+procedure SaveDataSG(Name: String);
+var
+  F: TextFile;
+  d: string;
+  i: Integer;
+begin
+  AssignFile(F, Name);
+  Rewrite(F);
+  for i:=1 to TFrame2(ActualFrame).DataSG.RowCount-1 do begin
+    d:= TFrame2(ActualFrame).DataSG.Cells[0,i]+','+TFrame2(ActualFrame).DataSG.Cells[2,i];
+    WriteLn(F,d);
+  end;
+  CloseFile(F);
 end;
 
 procedure ExprPlot(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -61,6 +78,22 @@ begin
     else Result.resFloat:= NULLF;
   end;
   TFrame1(ActualFrame).Plotear(Args[0].ResString,a-ShiftArea,b+ShiftArea,True);
+end;
+
+procedure ExprDerivate(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  MDe: TDerivate;
+  x,h: real;
+  fn: string;
+begin
+  x:= ArgToFloat(Args[1]);
+  h:= ArgToFloat(Args[2]);
+  fn:= Args[0].ResString;
+  MDe:= TDerivate.Create(h);
+  WriteLn(x);
+  WriteLn(h);
+  WriteLn(fn);
+  Result.resFloat:= MDe.FFD(x,fn);
 end;
 
 procedure ExprInterMeth(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -104,36 +137,6 @@ begin
     TFrame1(ActualFrame).Plotear(Result.resString,TM.x-ShiftArea,TM.y+ShiftArea,False);
     TFrame1(ActualFrame).PlotearPoints(MList,True);
   end;
-end;
-
-procedure ExprEdo(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
-var
-  MEDO: TEDO;
-  MB: TBox;
-  xi,xf,xin,yin: real;
-begin
-  Result.resString:= '  No Existe Este Metodo';
-  xi:=  ArgToFloat(Args[1]);
-  xf:=  ArgToFloat(Args[2]);
-  xin:= ArgToFloat(Args[3]);
-  yin:= ArgToFloat(Args[4]);
-
-  MEDO:= TEDO.Create();
-  case Args[5].ResString of
-    'Euler':      MB:= MEDO.Euler(xi,xf,xin,yin,Args[0].ResString,'');
-    'Heun':       MB:= MEDO.Heun(xi,xf,xin,yin,Args[0].ResString,'');
-    'RungeKutta': MB:= MEDO.RungeKutta4(xi,xf,xin,yin,Args[0].ResString,'');
-    'Dormand':    MB:= MEDO.DormandPrince(xi,xf,xin,yin,Args[0].ResString,'');
-    else Exit;
-  end;
-
-  case Args[6].ResString of
-    'Table': TFrame2(ActualFrame).PutSG(MB);
-    'Graphic': TFrame1(ActualFrame).PlotearPointFunct(TBoxToTLP(1,2,MB));
-  end;
-  Result.resString:= '';
-  MEDO.Destroy();
-  MB.Destroy();
 end;
 
 procedure ExprMatrix(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
@@ -280,9 +283,9 @@ var
 begin
   MIP:= TMethIntersection.Create();
   fa:= '('+Args[0].ResString+')-('+Args[1].ResString+')';
-  LTM:= MIP.MBoth(-XLim,XLim,0.001,fa,Args[1].ResString);
+  LTM:= MIP.MBoth(XL,XR,0.001,fa,Args[1].ResString);
   if LTM.Count<2 then begin
-    TFrame1(ActualFrame).PlotearIntersection(Args[0].ResString,Args[1].ResString,-XLim,XLim);
+    TFrame1(ActualFrame).PlotearIntersection(Args[0].ResString,Args[1].ResString,XL,XR);
     Result.resFloat:= NULLF;
     Exit;
   end
@@ -305,11 +308,51 @@ begin
   LTM.Destroy;
 end;
 
+procedure ExprEdo(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  MEDO: TEDO;
+  MB: TBox;
+  xi,xf,xin,yin: real;
+  sol: string;
+  n: integer;
+begin
+  Result.resString:= '  No Existe Este Metodo';
+  xi:=  ArgToFloat(Args[1]);
+  xf:=  ArgToFloat(Args[2]);
+  xin:= ArgToFloat(Args[3]);
+  yin:= ArgToFloat(Args[4]);
+  n:= Round(ArgToFloat(Args[5]));
+  sol:= Args[8].ResString;
+
+  MEDO:= TEDO.Create(n);
+  case Args[6].ResString of
+    'Euler':      MB:= MEDO.Euler(xi,xf,xin,yin,Args[0].ResString,sol);
+    'Heun':       MB:= MEDO.Heun(xi,xf,xin,yin,Args[0].ResString,sol);
+    'RungeKutta': MB:= MEDO.RungeKutta4(xi,xf,xin,yin,Args[0].ResString,sol);
+    'Dormand':    MB:= MEDO.DormandPrince(xi,xf,xin,yin,Args[0].ResString,sol);
+    else Exit;
+  end;
+
+  case Args[7].ResString of
+    'Table': TFrame2(ActualFrame).PutSG(MB);
+    'Graphic': begin
+      TFrame1(ActualFrame).PlotearPointFunct(TBoxToTLP(1,2,MB));
+      if sol<>'' then
+        TFrame1(ActualFrame).Plotear(sol,xi,xf,false);
+    end;
+  end;
+  Result.resString:= '';
+  MEDO.Destroy();
+  MB.Destroy();
+end;
+
 procedure ExprEdp(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
   MEDP: TEDP;
   MB: TBox;
   xi,xf,xin,yin,xpin,ypin: real;
+  n: integer;
+  sol: string;
 begin
   Result.resString:= '  No Existe Este Metodo';
   xi:=  ArgToFloat(Args[1]);
@@ -318,17 +361,23 @@ begin
   yin:= ArgToFloat(Args[4]);
   xpin:= ArgToFloat(Args[5]);
   ypin:= ArgToFloat(Args[6]);
+  n:= Round(ArgToFloat(Args[7]));
+  sol:= Args[10].ResString;
 
-  MEDP:= TEDP.Create();
-  case Args[7].ResString of
-    'Euler':      MB:= MEDP.Euler(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,'sinh(x)');
-    'RungeKutta': MB:= MEDP.RungeKutta4(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,'sinh(x)');
+  MEDP:= TEDP.Create(n);
+  case Args[8].ResString of
+    'Euler':      MB:= MEDP.Euler(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,sol);
+    'RungeKutta': MB:= MEDP.RungeKutta4(xi,xf,xin,yin,xpin,ypin,Args[0].ResString,sol);
     else Exit;
   end;
 
-  case Args[8].ResString of
+  case Args[9].ResString of
     'Table': TFrame2(ActualFrame).PutSG(MB);
-    'Graphic': TFrame1(ActualFrame).PlotearPointFunct(TBoxToTLP(1,2,MB));
+    'Graphic':begin
+      TFrame1(ActualFrame).PlotearPointFunct(TBoxToTLP(1,2,MB));
+      if sol<>'' then
+        TFrame1(ActualFrame).Plotear(sol,xi,xf,false);
+    end;
   end;
   Result.resString:= '';
   MEDP.Destroy();

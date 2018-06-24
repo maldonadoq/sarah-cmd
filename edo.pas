@@ -9,7 +9,7 @@ uses
 
 type
   TEDO = class
-    constructor Create();
+    constructor Create(n: integer);
     destructor Destroy(); override;
 
     private
@@ -28,12 +28,13 @@ type
 
 implementation
 
-constructor TEDO.Create();
+constructor TEDO.Create(n: integer);
 begin
   MParse:= TParseMath.Create();
   MParse.AddVariable('x',0);
   MParse.AddVariable('y',0);
   MR:= TList.Create;
+  nv:= n;
 end;
 
 destructor TEDO.Destroy();
@@ -60,13 +61,14 @@ var
 begin
   m:= (MR.Count div n);
   Result:= TBox.Create(m+1,n+1);
-  Result.M[0,0]:= 'n';         Result.M[0,1]:= 'X';
+  Result.M[0,0]:= 'n';          Result.M[0,1]:= 'X';
   Result.M[0,2]:= 'Y [Método]'; Result.M[0,3]:= 'Solución Exacta';
+  Result.M[0,4]:= 'E';
 
   k:= 1; i:= 0;
   while(i<MR.Count-1) do begin
     Result.M[k,0]:= IntToStr(k-1);
-    for j:=0 to 2 do
+    for j:=0 to n-1 do
       Result.M[k,j+1]:= FloatToStr(Real(MR.Items[i+j]));
     i:= i+n;
     k:= k+1;
@@ -75,10 +77,9 @@ end;
 
 function TEDO.Euler(xi,xf,xti,yti: real; fn,fs: string): TBox;
 var
-  h,myti: real;
+  h,myti,ys: real;
   i: integer;
 begin
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if(xti = xi) then  h:= h
   else if(xti = xf) then  h:= 0-h
@@ -92,28 +93,33 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
 
   for i:=1 to nv do begin
     myti:= yti+(h*Func(xti,yti,fn));
 
     MR.Add(Pointer(xti+h));
     MR.Add(Pointer(myti));
-    if(fs <> '') then
-      MR.Add(Pointer(Func(xti+h,myti,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(xti+h,myti,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-myti)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
     xti:= xti+h;
     yti:= myti;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 function TEDO.Heun(xi,xf,xti,yti: real; fn,fs: string): TBox;
 var
-  h,myti,myt,tmp: real;
+  h,ys,myti,myt,tmp: real;
   i: integer;
 begin
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if(xti = xi) then  h:= h
   else if(xti = xf) then  h:= 0-h
@@ -128,6 +134,7 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
 
   for i:=1 to nv do begin
     tmp:= myt+(h*Func(xti,myt,fn));
@@ -135,22 +142,26 @@ begin
 
     MR.Add(Pointer(xti+h));
     MR.Add(Pointer(myti));
-    if(fs <> '') then
-      MR.Add(Pointer(Func(xti+h,myti,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(xti+h,myti,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-myti)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
     xti:= xti+h;
     myt:= myti;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 function TEDO.RungeKutta4(xi,xf,xti,yti: real; fn,fs: string): TBox;
 var
-  h,myti,k1,k2,k3,k4: real;
+  h,myti,ys,k1,k2,k3,k4: real;
   i: integer;
 begin
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if(xti = xi) then  h:= h
   else if(xti = xf) then  h:= 0-h
@@ -163,6 +174,7 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
   for i:=1 to nv do begin
 
     k1:= Func(xti,yti,fn);
@@ -174,23 +186,27 @@ begin
 
     MR.Add(Pointer(xti+h));
     MR.Add(Pointer(myti));
-    if(fs <> '') then
-      MR.Add(Pointer(Func(xti+h,myti,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(xti+h,myti,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-myti)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
 
     xti:= xti+h;
     yti:= myti;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 function TEDO.DormandPrince(xi,xf,xti,yti: real; fn,fs: string): TBox;
 var
-  h,eps,k1,k2,k3,k4,k5,k6,k7,er,z1,y1,s,h1,hmin,hmax: real;
+  h,eps,ys,k1,k2,k3,k4,k5,k6,k7,er,z1,y1,s,h1,hmin,hmax: real;
 begin
   eps:= 0.001;
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if(xti = xi) then  h:= h
   else if(xti = xf) then  h:= 0-h
@@ -203,6 +219,7 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
 
   hmin:= 0.001;
   hmax:= 0.1;
@@ -228,14 +245,19 @@ begin
     if(h1<hmin) then h1:= hmin
     else if(h1>hmax) then h1:= hmax;
 
-    if(fs <> '') then
-      MR.Add(Pointer(Func(xti+h,yti,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(xti+h,yti,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-yti)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
     xti:= xti+h;
     h:= h1;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 end.

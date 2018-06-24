@@ -33,6 +33,15 @@ type
   end;
 
 type
+  TSE = class
+    Value: string;
+    R: real;
+    State: boolean;
+    constructor Create(s: boolean; v:string; re: real);
+    destructor Destroy(); override;
+  end;
+
+type
   TRD = record
     State: Boolean;
     Value: Real;
@@ -68,15 +77,8 @@ type
     State: boolean;
   end;
 
-type
-  TSE = record
-    Value: string;
-    R: real;
-    State: boolean;
-  end;
-
 var
-  NULLF, ShiftArea, XLim: real;
+  NULLF, ShiftArea, XR, XL: real;
   F1,F2,TypeVarF,TypeVarM,TypeVarR,TypeVarN, TypeVarB: string;
   TLSFunct: TList;
   MFunct: TStringList;
@@ -98,6 +100,17 @@ function FSArg(tx: string): TSRA;
 function VarBin(tx: string; id: integer): TSRA;
 
 implementation
+
+constructor TSE.Create(s: boolean; v:string; re: real);
+begin
+  Value:= v;
+  State:= s;
+  R:= re;
+end;
+
+destructor TSE.Destroy();
+begin
+end;
 
 constructor TMPoint.Create(_x, _y: real);
 begin
@@ -294,6 +307,8 @@ var
   i: integer;
 begin
   Result:= TList.Create;
+  if MB.x=0 then
+    Exit;
   for i:=1 to MB.x-1 do
     Result.Add(TMPoint.Create(StrToFloat(MB.M[i,a]),StrToFloat(MB.M[i,b])));
 end;
@@ -308,10 +323,10 @@ begin
   Result[1]:= SubString(tx,idx+1,Length(tx));
   if Pos('(',Result[0])>0 then
     Result[2]:= TypeVarF
-  else if Pos('[',Result[1])>0 then
-    Result[2]:= TypeVarM
   else if Pos('(',Result[1])>0 then
     Result[2]:= TypeVarB
+  else if Pos('[',Result[1])>0 then
+    Result[2]:= TypeVarM
   else begin
     Try
       StrToFloat(Result[1]);

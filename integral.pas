@@ -63,6 +63,7 @@ begin
     a:= a+h;
   end;
   Result:= h*r;
+  WriteLn(r);
 end;
 
 function TIntegral.SimpsonI(a,b: real; fn: string; n: integer): real;

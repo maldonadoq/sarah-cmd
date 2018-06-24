@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="Sarah.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -78,8 +78,13 @@
       <Unit7>
         <Filename Value="edp.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="EDP"/>
+        <UnitName Value="Edp"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="derivate.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Derivate"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

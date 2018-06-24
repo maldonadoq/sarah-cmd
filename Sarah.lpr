@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, cmdbox, tachartlazaruspkg, Main, FrameGraphic, CmdParse, FrameStrGrid,
-  Extrapolacion, Edp;
+  Extrapolacion, Edp, Derivate;
 
 {$R *.res}
 

@@ -66,8 +66,9 @@ begin
   MP:= TEvaluate.Create();
   idxcolor:= 9;
   FuncSelected:= True;
-  ShiftArea:= 0.2;
-  XLim:= 10;
+  ShiftArea:= 0.001;
+  XL:= -1;
+  XR:= 1;
   NULLF:= 99999;
   TypeVarF:= 'function'; TypeVarM:= 'matrix';
   TypeVarR:= 'real';   TypeVarN:= 'null';
@@ -77,7 +78,7 @@ begin
   SgVariable.Cells[0,1]:= 'f(x)'; SgVariable.Cells[2,1]:= 'function'; SgVariable.Cells[1,1]:= 'sin(x)';
   SgVariable.Cells[0,2]:= 'g(x)'; SgVariable.Cells[2,2]:= 'function'; SgVariable.Cells[1,2]:= 'cos(x)';
   SgVariable.Cells[0,3]:= 'h(x)'; SgVariable.Cells[2,3]:= 'function'; SgVariable.Cells[1,3]:= 'power(x,2)-2';
-  SgVariable.Cells[0,4]:= 's(x)'; SgVariable.Cells[2,4]:= 'function'; SgVariable.Cells[1,4]:= 'sin(exp(x*y))/((2*y)-(x*cos(exp(x*y))))';
+  SgVariable.Cells[0,4]:= 's(x)'; SgVariable.Cells[2,4]:= 'function'; SgVariable.Cells[1,4]:= 'x+y';
   SgVariable.Cells[0,5]:= 'p(x)'; SgVariable.Cells[2,5]:= 'function'; SgVariable.Cells[1,5]:= '(2*exp(x))-(2*z)-y';
   SgVariable.Cells[0,6]:= 'M';    SgVariable.Cells[2,6]:= 'matrix';   SgVariable.Cells[1,6]:= '[1,2:2,3]';
   SgVariable.Cells[0,7]:= 'N';    SgVariable.Cells[2,7]:= 'matrix';   SgVariable.Cells[1,7]:= '[-6,2:4,3]';
@@ -185,14 +186,15 @@ end;
 
 procedure TForm1.Plotear(fn: string; xmin,xmax: real);
 var
-  x,h: Real;
+  x,y,h: Real;
 begin
   x:= xmin;
-  h:= 0.01;
+  h:= 0.001;
 
   MNewFunction(fn);
   with TLineSeries(TLSFunct[TLSFunct.Count-1]) do repeat
-    AddXY(x,MP.Func(x,fn));
+    y:= MP.Func(x,fn);
+    AddXY(x,y);
     x:= x+h
   until(x>=xmax);
 end;
@@ -260,6 +262,7 @@ begin
       'clrhis': CmdL.ClearHistory;
       'clrvar': ClearVariable;
       'clrall': begin CmdL.Clear; StartCommand(); CmdL.ClearHistory; ClearVariable; end;
+      'save': begin SaveDataSG('data.txt'); InstantFrame(0,False) end;
 
       else begin
         if Pos('=',FinalLine)>0 then begin
@@ -277,6 +280,14 @@ begin
             PutVariable(MVS);
 
           InstantFrame(0,False);
+        end
+        else if pos('XL',FinalLine)>0 then begin
+          Final:= SubString(FinalLine,3, Length(FinalLine));
+          XL:= StrToFloat(Final);
+        end
+        else if pos('XR',FinalLine)>0 then begin
+          Final:= SubString(FinalLine,3, Length(FinalLine));
+          XR:= StrToFloat(Final);
         end
         else if pos('plotear',FinalLine)>0 then begin
           Final:= SubString(FinalLine,Pos('(',FinalLine)+1, Length(FinalLine)-1);
@@ -298,7 +309,7 @@ begin
               Final:= MV.s1;
           end;
           ChartVisible(true);
-          Plotear(Final,-XLim,XLim);
+          Plotear(Final,XL,XR);
         end
         else if pos('plot',FinalLine)>0 then begin
           MRS:= VarOrFunct(FinalLine,'function');
@@ -313,7 +324,7 @@ begin
         end
         else if pos('select',FinalLine)>0 then begin
           if pos('intersection',FinalLine)>0 then begin
-            Final:= 'intersection('+#39+F1+#39+','+#39+F2+#39+',-'+FloatToStr(XLim)+','+FloatToStr(XLim)+',0.001)';
+            Final:= 'intersection('+#39+F1+#39+','+#39+F2+#39+','+FloatToStr(XL)+','+FloatToStr(XR)+',0.001)';
             InstantFrame(0,True);
             CmdL.WriteLn(FunctStr(Final));
           end
@@ -378,6 +389,15 @@ begin
           InstantFrame(1,True);
           CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)));
         end
+        else if pos('derivate',FinalLine)>0 then begin
+          MRS:= VarOrFunct(FinalLine,'function');
+          if not MRS.State then begin
+            CmdL.WriteLn('  No Existe Esta Variable');
+            Exit;
+          end;
+          FinalLine:= MRS.Value;
+          CmdL.WriteLn('  '+FloatToStr(Funct(FinalLine)))
+        end
         else if pos('interpolation',FinalLine)>0 then begin
           MRS:= VarOrFunct(FinalLine,'base');
           if not MRS.State then begin
@@ -387,7 +407,12 @@ begin
           FinalLine:= MRS.Value;
 
           InstantFrame(0,True);
-          CmdL.WriteLn(FunctStr(FinalLine));
+          //interpolation(B;'Lagrange')
+          ////derivate('power(x,2)';3;0.00001)
+          //B=[(1.03,2.5):(1.04,2.8):(1.05,2.9):(1.07,3.1):(1.09,2.95):(1.13,2.97)]
+          Final:= FunctStr(FinalLine);
+          CmdL.WriteLn(Final);
+          WriteLn(Final);
         end
         else if (pos('edo',FinalLine)>0) or (pos('edp',FinalLine)>0) then begin
           if pos('Table',FinalLine)>0 then InstantFrame(1,true)

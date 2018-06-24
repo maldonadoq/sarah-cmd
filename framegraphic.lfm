@@ -32,6 +32,7 @@ object Frame1: TFrame1
     Align = alClient
     object AreaDraw: TAreaSeries
       AreaBrush.Color = clRed
+      UseZeroLevel = True
     end
     object GraficaI: TLineSeries
       LinePen.Color = clLime

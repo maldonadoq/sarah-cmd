@@ -12,7 +12,7 @@ type
       MP: TParseMath;
       MR: TList;
     public
-      constructor Create();
+      constructor Create(n: integer);
       destructor Destroy(); override;
 
       procedure SizeH(xi,xf: real);
@@ -24,13 +24,14 @@ type
 
 implementation
 
-constructor TEDP.Create();
+constructor TEDP.Create(n: integer);
 begin
   MR:= TList.Create;
   MP:= TParseMath.Create();
   MP.AddVariable('x',0);
   MP.AddVariable('y',0);
   MP.AddVariable('z',0);
+  nv:= n;
 end;
 
 destructor TEDP.Destroy();
@@ -53,13 +54,14 @@ var
 begin
   m:= (MR.Count div n);
   Result:= TBox.Create(m+1,n+1);
-  Result.M[0,0]:= 'n';         Result.M[0,1]:= 'X';
+  Result.M[0,0]:= 'n';          Result.M[0,1]:= 'X';
   Result.M[0,2]:= 'Y [Método]'; Result.M[0,3]:= 'Solución Exacta';
+  Result.M[0,4]:= 'E';
 
   k:= 1; i:= 0;
   while(i<MR.Count-1) do begin
     Result.M[k,0]:= IntToStr(k-1);
-    for j:=0 to 2 do
+    for j:=0 to n-1 do
       Result.M[k,j+1]:= FloatToStr(Real(MR.Items[i+j]));
     i:= i+n;
     k:= k+1;
@@ -77,11 +79,10 @@ end;}
 
 function TEDP.Euler(xi,xf,xti,yti,xpti,ypti: real; fn,fs: string): TBox;
 var
-  h,x,y,z,myt,mzt: real;
+  h,x,y,z,ys,myt,mzt: real;
   i: integer;
   fp: string;
 begin
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if xti=xpti then begin
     if(xti = xi) then  h:= h
@@ -102,6 +103,7 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
 
   fp:= 'z'; x:= xti; y:= yti; z:= ypti;
   for i:=1 to nv do begin
@@ -110,24 +112,28 @@ begin
 
     MR.Add(Pointer(x+h));
     MR.Add(Pointer(myt));
-    if(fs <> '') then
-      MR.Add(Pointer(Func(x+h,0,z,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(x+h,myt,mzt,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-myt)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
     x:= x+h;
     y:= myt;
     z:= mzt;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 function TEDP.RungeKutta4(xi,xf,xti,yti,xpti,ypti: real; fn,fs: string): TBox;
 var
-  h,x,y,z,myt,mzt,ky1,ky2,ky3,ky4,kz1,kz2,kz3,kz4: real;
+  h,x,y,z,myt,mzt,ys,ky1,ky2,ky3,ky4,kz1,kz2,kz3,kz4: real;
   i: integer;
   fp: string;
 begin
-  SizeH(xi,xf);
   h:= (xf-xi)/nv;
   if xti=xpti then begin
     if(xti = xi) then  h:= h
@@ -148,16 +154,17 @@ begin
   MR.Add(Pointer(xti));
   MR.Add(Pointer(yti));
   MR.Add(Pointer(yti));
+  MR.Add(Pointer(0));
 
   fp:= 'z'; x:= xti; y:= yti; z:= ypti;
   for i:=1 to nv do begin
     myt:= y+(h*Func(x,y,z,fp));
     mzt:= z+(h*Func(x,y,z,fn));
 
-    ky1:= Func(x,y,z,'z');
-    ky2:= Func(x+(h/2),y+(ky1*h/2),z,'z');
-    ky3:= Func(x+(h/2),y+(ky2*h/2),z,'z');
-    ky4:= Func(x+h,y+(ky3*h),z,'z');
+    ky1:= Func(x,y,z,fp);
+    ky2:= Func(x+(h/2),y+(ky1*h/2),z,fp);
+    ky3:= Func(x+(h/2),y+(ky2*h/2),z,fp);
+    ky4:= Func(x+h,y+(ky3*h),z,fp);
 
     kz1:= Func(x,y,z,fn);
     kz2:= Func(x+(h/2),y+(ky1*h/2),z+(kz1*h/2),fn);
@@ -169,15 +176,20 @@ begin
 
     MR.Add(Pointer(x+h));
     MR.Add(Pointer(myt));
-    if(fs <> '') then
-      MR.Add(Pointer(Func(x+h,0,0,fs)))
-    else
+    if(fs <> '') then begin
+      ys:= Func(x+h,myt,mzt,fs);
+      MR.Add(Pointer(ys));
+      MR.Add(Pointer(Abs(ys-myt)));
+    end
+    else begin
       MR.Add(Pointer(0));
+      MR.Add(Pointer(0));
+    end;
     x:= x+h;
     y:= myt;
     z:= mzt;
   end;
-  Result:= CreateTBox(3);
+  Result:= CreateTBox(4);
 end;
 
 end.
